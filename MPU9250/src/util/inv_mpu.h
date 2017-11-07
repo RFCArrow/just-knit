@@ -60,7 +60,7 @@ struct int_param_s {
 
 /* Set up APIs */
 int set_int_enable(unsigned char enable);
-int mpu_init(struct int_param_s *int_param);
+int mpu_init(struct int_param_s *int_param, unsigned i2c_addr);
 int mpu_init_slave(void);
 int mpu_set_bypass(unsigned char bypass_on);
 
@@ -132,4 +132,3 @@ int mpu_run_6500_self_test(long *gyro, long *accel, unsigned char debug);
 int mpu_register_tap_cb(void (*func)(unsigned char, unsigned char));
 
 #endif  /* #ifndef _INV_MPU_H_ */
-
