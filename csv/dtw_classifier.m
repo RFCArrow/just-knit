@@ -4,6 +4,8 @@ function accuracy = dtw_classifier(data_set, train_size, k, weight, selective)
 % k - k-nearest neighbours classifier
 % weight - bool to select to use weighted k-nearest neighbours alg
 % selective - select optimal train_set by using keep one out validation
+% Also try the effects of the different data collected ( quarternions vs
+% acc , etc)
 
 if(~exist('k'))
     k = 1;
