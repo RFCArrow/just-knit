@@ -60,9 +60,10 @@ struct int_param_s {
 
 /* Set up APIs */
 int set_int_enable(unsigned char enable);
-int mpu_init(struct int_param_s *int_param, unsigned i2c_addr);
+int mpu_init(struct int_param_s *int_param);
 int mpu_init_slave(void);
 int mpu_set_bypass(unsigned char bypass_on);
+int mpu_set_address(unsigned i2c_addr);
 
 /* Configuration APIs */
 int mpu_lp_accel_mode(unsigned short rate);

@@ -461,7 +461,7 @@ const struct test_s test = {
     .max_accel_var  = 0.14f
 };
 
-static struct gyro_state_s st = {
+struct gyro_state_s st = {
     .reg = &reg,
     .hw = &hw,
     .test = &test
@@ -543,7 +543,7 @@ const struct test_s test = {
     .sample_wait_ms = 10    //10ms sample time wait
 };
 
-static struct gyro_state_s st = {
+struct gyro_state_s st = {
     .reg = &reg,
     .hw = &hw,
     .test = &test
@@ -643,11 +643,9 @@ int mpu_read_reg(unsigned char reg, unsigned char *data)
  *  @param[in]  int_param   Platform-specific parameters to interrupt API.
  *  @return     0 if successful.
  */
-int mpu_init(struct int_param_s *int_param, unsigned i2c_addr)
+int mpu_init(struct int_param_s *int_param)
 {
     unsigned char data[6];
-
-		st.hw->addr = i2c_addr;
 
     /* Reset device. */
     data[0] = BIT_RESET;
@@ -1823,6 +1821,13 @@ int mpu_set_bypass(unsigned char bypass_on)
     }
     st.chip_cfg.bypass_mode = bypass_on;
     return 0;
+}
+
+//Added by RFCArrow 07/11/2017
+//Changes i2c address of the device being controlled
+//This allows 2 MPUs to be used in a bodgy kind of way
+int mpu_set_address(unsigned i2c_addr){
+		st.hw->addr = i2c_addr;
 }
 
 /**

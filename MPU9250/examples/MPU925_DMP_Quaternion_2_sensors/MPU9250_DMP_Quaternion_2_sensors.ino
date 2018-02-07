@@ -25,25 +25,39 @@ Supported Platforms:
 
 #define SerialPort Serial
 
-MPU9250_DMP imu;
+MPU9250_DMP imu1;
+
+MPU9250_DMP imu2;
 
 void setup()
 {
   SerialPort.begin(115200);
 
+  unsigned i2c_addr = 0x69;
+
   // Call imu.begin() to verify communication and initialize
-  if (imu.begin() != INV_SUCCESS)
+  if (imu1.begin(i2c_addr) != INV_SUCCESS)
   {
     while (1)
     {
-      SerialPort.println("Unable to communicate with MPU-9250");
+      SerialPort.println("Unable to communicate with 1");
+      SerialPort.println("Check connections, and try again.");
+      SerialPort.println();
+      delay(5000);
+    }
+  }
+  if (imu2.begin(i2c_addr-1) != INV_SUCCESS)
+  {
+    while (1)
+    {
+      SerialPort.println("Unable to communicate with 2");
       SerialPort.println("Check connections, and try again.");
       SerialPort.println();
       delay(5000);
     }
   }
 
-  imu.dmpBegin(DMP_FEATURE_6X_LP_QUAT | // Enable 6-axis quat
+  imu1.dmpBegin(DMP_FEATURE_6X_LP_QUAT | // Enable 6-axis quat
                DMP_FEATURE_GYRO_CAL, // Use gyro calibration
               10); // Set DMP FIFO rate to 10 Hz
   // DMP_FEATURE_LP_QUAT can also be used. It uses the
@@ -53,30 +67,15 @@ void setup()
 
 void loop()
 {
-  imu.setAddr((unsigned)0x68);
   // Check for new data in the FIFO
-  if ( imu.fifoAvailable() )
+  if ( imu1.fifoAvailable() )
   {
     // Use dmpUpdateFifo to update the ax, gx, mx, etc. values
-    if ( imu.dmpUpdateFifo() == INV_SUCCESS)
+    if ( imu1.dmpUpdateFifo() == INV_SUCCESS)
     {
       // computeEulerAngles can be used -- after updating the
       // quaternion values -- to estimate roll, pitch, and yaw
-      imu.computeEulerAngles();
-      printIMUData();
-    }
-  }
-  //change imu and do it all again
-  imu.setAddr((unsigned)0x69);
-  // Check for new data in the FIFO
-  if ( imu.fifoAvailable() )
-  {
-    // Use dmpUpdateFifo to update the ax, gx, mx, etc. values
-    if ( imu.dmpUpdateFifo() == INV_SUCCESS)
-    {
-      // computeEulerAngles can be used -- after updating the
-      // quaternion values -- to estimate roll, pitch, and yaw
-      imu.computeEulerAngles();
+      imu1.computeEulerAngles();
       printIMUData();
     }
   }
@@ -88,16 +87,16 @@ void printIMUData(void)
   // are all updated.
   // Quaternion values are, by default, stored in Q30 long
   // format. calcQuat turns them into a float between -1 and 1
-  float q0 = imu.calcQuat(imu.qw);
-  float q1 = imu.calcQuat(imu.qx);
-  float q2 = imu.calcQuat(imu.qy);
-  float q3 = imu.calcQuat(imu.qz);
+  float q0 = imu1.calcQuat(imu.qw);
+  float q1 = imu1.calcQuat(imu.qx);
+  float q2 = imu1.calcQuat(imu.qy);
+  float q3 = imu1.calcQuat(imu.qz);
 
   SerialPort.println("Q: " + String(q0, 4) + ", " +
                     String(q1, 4) + ", " + String(q2, 4) +
                     ", " + String(q3, 4));
-  SerialPort.println("R/P/Y: " + String(imu.roll) + ", "
-            + String(imu.pitch) + ", " + String(imu.yaw));
-  SerialPort.println("Time: " + String(imu.time) + " ms");
+  SerialPort.println("R/P/Y: " + String(imu1.roll) + ", "
+            + String(imu1.pitch) + ", " + String(imu1.yaw));
+  SerialPort.println("Time: " + String(imu1.time) + " ms");
   SerialPort.println();
 }

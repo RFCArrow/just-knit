@@ -36,14 +36,14 @@ MPU9250_DMP::MPU9250_DMP()
 	_gSense = 0.0f;   // Updated after gyro FSR is set
 }
 
-inv_error_t MPU9250_DMP::begin(unsigned i2c_addr)
+inv_error_t MPU9250_DMP::begin()
 {
 	inv_error_t result;
     struct int_param_s int_param;
-	
+
 	Wire.begin();
 
-	result = mpu_init(&int_param, i2c_addr);
+	result = mpu_init(&int_param);
 
 	if (result)
 		return result;
@@ -57,6 +57,11 @@ inv_error_t MPU9250_DMP::begin(unsigned i2c_addr)
 
 	return result;
 }
+
+	void setAddr(unsigned i2c_addr){
+		mpu_set_address(i2c_addr);
+		return;
+	}
 
 inv_error_t MPU9250_DMP::enableInterrupt(unsigned char enable)
 {
