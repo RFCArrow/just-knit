@@ -1,0 +1,9 @@
+*.swp
+*.hex
+*.bin
+*.project
+*.eww
+*.o
+*.out
+*/_build/*
+
