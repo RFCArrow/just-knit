@@ -9,7 +9,7 @@ static uint32_t devs_value_char_add(ble_devs_t * p_devs, const ble_devs_init_t *
 
 static void on_connect(ble_devs_t * p_devs, ble_evt_t const * p_ble_evt);
 static void on_disconnect(ble_devs_t * p_devs, ble_evt_t const * p_ble_evt);
-
+static void on_write(ble_devs_t * p_devs, ble_evt_t const * p_ble_evt);
 
 uint32_t ble_devs_init(ble_devs_t * p_devs, const ble_devs_init_t * p_devs_init)
 {
@@ -115,6 +115,10 @@ void ble_devs_on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context){
 	    on_disconnect(p_devs, p_ble_evt);
 	    break;
 
+	case BLE_GATTS_EVT_WRITE:
+	    on_write(p_devs, p_ble_evt);
+	    break;
+
 	default:
 	     //Nop
 	     break;
@@ -141,4 +145,14 @@ static void on_connect(ble_devs_t * p_devs, ble_evt_t const * p_ble_evt){
 static void on_disconnect(ble_devs_t * p_devs, ble_evt_t const * p_ble_evt){
     UNUSED_PARAMETER(p_ble_evt);
     p_devs->conn_handle = BLE_CONN_HANDLE_INVALID;
+}
+
+static void on_write(ble_devs_t * p_devs, ble_evt_t const * p_ble_evt){
+    ble_gatts_evt_write_t const * p_evt_write = &p_ble_evt->evt.gatts_evt.params.write;
+
+    //Check if the handle passed with the event matches the Dev Value Characteristic handle
+    if(p_evt_write->handle == p_devs->value_handles.value_handle){
+	//Put specific task here.
+	nrf_gpio_pin_toggle(LED_4);
+    }
 }

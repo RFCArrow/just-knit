@@ -373,6 +373,9 @@ static void services_init(void)
     // Initialize CUS Service init structure to zero.
     memset(&devs_init, 0, sizeof(devs_init));
 
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&devs_init.value_char_attr_md.read_perm);
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&devs_init.value_char_attr_md.write_perm);
+
     err_code = ble_devs_init(&m_devs, &devs_init);
     APP_ERROR_CHECK(err_code);  
 }
