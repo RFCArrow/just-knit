@@ -12,8 +12,11 @@
  *@param   _name   Name of the instance.
  *@hideinitializer
 */
-#define BLE_DEVS_DEF(_name) \
-static ble_devs_t _name;
+#define BLE_DEVS_DEF(_name) 			\
+static ble_devs_t _name;			\
+NRF_SDH_BLE_OBSERVER(_name ## _obs,		\
+		BLE_HRS_BLE_OBSERVER_PRIO,	\
+		ble_devs_on_ble_evt, &_name)
 
 // 93e6af3d-20b6-4a6d-9250-ce8d584b70df
 #define DEV_SERVICE_UUID_BASE         {0x93, 0xE6, 0xAF, 0x3D, 0x20, 0xB6, 0x4A, 0x6D, \
@@ -59,11 +62,24 @@ uint32_t ble_devs_init(ble_devs_t * p_devs, const ble_devs_init_t * p_devs_init)
 
 /**@brief Function for adding the Custom Value characteristic.
  *
- * @param[in]   p_cus        Custom Service structure.
- * @param[in]   p_cus_init   Information needed to initialize the service.
+ * @param[in]   p_devs        Custom Service structure.
+ * @param[in]   p_devs_init   Information needed to initialize the service.
  * @return      NRF_SUCCESS on success, otherwise an error code.
  */
 //static uint32_t devs_value_char_add(ble_devs_t * p_devs, const ble_devs_init_t * p_devs_init);
+
+
+/**@brief Function for handling the Application's BLE Stack events.
+ *
+ * @details Handles all events from the BLE stack of interest to the Battery Service.
+ *
+ * @note 
+ *
+ * @param[in]   p_ble_evt  Event received from the BLE stack.
+ * @param[in]   p_context  Custom Service structure.
+ */
+void ble_devs_on_ble_evt( ble_evt_t const * p_ble_evt, void * p_context);
+
 
 
 #endif

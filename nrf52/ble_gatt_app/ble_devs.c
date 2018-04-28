@@ -7,6 +7,9 @@ static uint32_t devs_value_char_add(ble_devs_t * p_devs, const ble_devs_init_t *
 #include "boards.h"
 #include "nrf_log.h"
 
+static void on_connect(ble_devs_t * p_devs, ble_evt_t const * p_ble_evt);
+static void on_disconnect(ble_devs_t * p_devs, ble_evt_t const * p_ble_evt);
+
 
 uint32_t ble_devs_init(ble_devs_t * p_devs, const ble_devs_init_t * p_devs_init)
 {
@@ -94,4 +97,48 @@ static uint32_t devs_value_char_add(ble_devs_t * p_devs, const ble_devs_init_t *
     }
     return NRF_SUCCESS;
 
+}
+
+void ble_devs_on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context){
+    ble_devs_t * p_devs = (ble_devs_t *) p_context;
+    
+    if(p_devs == NULL || p_ble_evt == NULL){
+	return;
+    }
+
+    switch (p_ble_evt->header.evt_id){
+	case BLE_GAP_EVT_CONNECTED:
+	    on_connect(p_devs, p_ble_evt);
+	    break;
+
+	case BLE_GAP_EVT_DISCONNECTED:
+	    on_disconnect(p_devs, p_ble_evt);
+	    break;
+
+	default:
+	     //Nop
+	     break;
+    }
+}
+
+/**@brief Function for handling the Connect event.
+ *
+ * @param[in]	p_devs		Dev Service Structure.
+ * @param[in] 	p_ble_evt 	Event received rom the BLE stack.
+ */
+
+static void on_connect(ble_devs_t * p_devs, ble_evt_t const * p_ble_evt){
+    p_devs->conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
+}
+
+
+/**@brief Function for handling the Disconnect event.
+ *
+ * @param[in]	p_devs		Dev Service Structure.
+ * @param[in] 	p_ble_evt 	Event received rom the BLE stack.
+ */
+
+static void on_disconnect(ble_devs_t * p_devs, ble_evt_t const * p_ble_evt){
+    UNUSED_PARAMETER(p_ble_evt);
+    p_devs->conn_handle = BLE_CONN_HANDLE_INVALID;
 }
