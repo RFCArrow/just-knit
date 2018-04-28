@@ -4,6 +4,8 @@
 *.project
 *.eww
 *.o
+*.d
 *.out
 */_build/*
-
+*/_build/
+*/ble_app_template/*
