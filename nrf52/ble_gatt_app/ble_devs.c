@@ -21,7 +21,8 @@ uint32_t ble_devs_init(ble_devs_t * p_devs, const ble_devs_init_t * p_devs_init)
     ble_uuid_t ble_uuid;
 
     // Initialize service structure
-    p_devs->conn_handle               = BLE_CONN_HANDLE_INVALID;
+    p_devs->evt_handler			= p_devs_init->evt_handler;
+    p_devs->conn_handle               	= BLE_CONN_HANDLE_INVALID;
 
 
     // Add Custom Service UUID
@@ -38,6 +39,7 @@ uint32_t ble_devs_init(ble_devs_t * p_devs, const ble_devs_init_t * p_devs_init)
     {
             return err_code;
     }
+
 
     // Add Custom Value Characteristic
     return devs_value_char_add(p_devs, p_devs_init);
@@ -133,6 +135,12 @@ void ble_devs_on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context){
 
 static void on_connect(ble_devs_t * p_devs, ble_evt_t const * p_ble_evt){
     p_devs->conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
+
+    ble_devs_evt_t evt;
+
+    evt.evt_type = BLE_DEVS_EVT_CONNECTED;
+
+    p_devs->evt_handler(p_devs, &evt);
 }
 
 
@@ -156,3 +164,4 @@ static void on_write(ble_devs_t * p_devs, ble_evt_t const * p_ble_evt){
 	nrf_gpio_pin_toggle(LED_4);
     }
 }
+

@@ -336,14 +336,16 @@ static void nrf_qwr_error_handler(uint32_t nrf_error)
  * @param[in]   p_yy_service   YY Service structure.
  * @param[in]   p_evt          Event received from the YY Service.
  *
- *
-static void on_yys_evt(ble_yy_service_t     * p_yy_service,
-                       ble_yy_service_evt_t * p_evt)
+ */
+static void on_devs_evt(ble_devs_t          * p_devs_service,
+                       ble_devs_evt_t       * p_evt)
 {
     switch (p_evt->evt_type)
     {
-        case BLE_YY_NAME_EVT_WRITE:
-            APPL_LOG("[APPL]: charact written with value %s. ", p_evt->params.char_xx.value.p_str);
+        case BLE_DEVS_EVT_CONNECTED:
+            break;
+
+        case BLE_DEVS_EVT_DISCONNECTED:
             break;
 
         default:
@@ -351,7 +353,6 @@ static void on_yys_evt(ble_yy_service_t     * p_yy_service,
             break;
     }
 }
-*/
 
 /**@brief Function for initializing services that will be used by the application.
  */
@@ -372,6 +373,8 @@ static void services_init(void)
 
     // Initialize CUS Service init structure to zero.
     memset(&devs_init, 0, sizeof(devs_init));
+
+    devs_init.evt_handler           = on_devs_evt;
 
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&devs_init.value_char_attr_md.read_perm);
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&devs_init.value_char_attr_md.write_perm);

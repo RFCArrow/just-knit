@@ -27,27 +27,42 @@ NRF_SDH_BLE_OBSERVER(_name ## _obs,		\
 #define QUART_CHAR_UUID     0x1403
 #define PEDAL_CHAR_UUID     0x1404
 
+typedef enum{
+	BLE_DEVS_EVT_DISCONNECTED,
+	BLE_DEVS_EVT_CONNECTED
+}ble_devs_evt_type_t;
+
+/**@brief Custom Service event. */
+typedef struct{
+	ble_devs_evt_type_t evt_type;
+}ble_devs_evt_t;
+
+// Forward declaration of the ble_devs_t type.
+typedef struct ble_devs_s ble_devs_t;
+
+/**@brief Custom Service event handler type. */
+typedef void (*ble_devs_evt_handler_t) (ble_devs_t * p_devs, ble_devs_evt_t * p_evt);
+
 
 /**@brief Custom Service init structure. This contains all options and data needed for
  *        initialization of the service.*/
 typedef struct
 {
-        uint8_t                       initial_dev_value;           /**< Initial custom value */
-        ble_srv_cccd_security_mode_t  value_char_attr_md;     /**< Initial security level for Custom characteristics attribute */
+	ble_devs_evt_handler_t		evt_handler;
+        uint8_t                       	initial_dev_value;           /**< Initial custom value */
+        ble_srv_cccd_security_mode_t  	value_char_attr_md;     /**< Initial security level for Custom characteristics attribute */
 } ble_devs_init_t;
 
 
 /**@brief Custom Service structure. This contains various status information for the service. */
 struct ble_devs_s
 {
+	ble_devs_evt_handler_t		evt_handler;
         uint16_t                        service_handle;             /**< Handle of Custom Service (as provided by the BLE stack). */
         ble_gatts_char_handles_t        value_handles;           /**< Handles related to the Custom Value characteristic. */
         uint16_t                        conn_handle;                    /**< Handle of the current connection (as provided by the BLE stack, is BLE_CONN_HANDLE_INVALID if not in a connection). */
         uint8_t                       uuid_type; 
 };
-
-// Forward declaration of the ble_devs_t type.
-typedef struct ble_devs_s ble_devs_t;
 
 /**@brief Function for initializing the Custom Service.
  *
