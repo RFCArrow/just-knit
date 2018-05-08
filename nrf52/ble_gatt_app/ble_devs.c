@@ -56,20 +56,28 @@ static uint32_t devs_value_char_add(ble_devs_t * p_devs, const ble_devs_init_t *
 {
     uint32_t            err_code;
     ble_gatts_char_md_t char_md;
-    //ble_gatts_attr_md_t cccd_md;
+    ble_gatts_attr_md_t cccd_md;
     ble_gatts_attr_t    attr_char_value;
     ble_uuid_t          ble_uuid;
     ble_gatts_attr_md_t attr_md;
+
+    memset(&cccd_md, 0, sizeof(cccd_md));
+
+    // Read operation on cccd should be possible without authentication
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cccd_md.read_perm);
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cccd_md.write_perm);
+
+    cccd_md.vloc        = BLE_GATTS_VLOC_STACK;
 
     memset(&char_md, 0, sizeof(char_md));
 
     char_md.char_props.read   = 1;
     char_md.char_props.write  = 1;
-    char_md.char_props.notify = 0; 
+    char_md.char_props.notify = 1; 
     char_md.p_char_user_desc  = NULL;
     char_md.p_char_pf         = NULL;
     char_md.p_user_desc_md    = NULL;
-    char_md.p_cccd_md         = NULL; 
+    char_md.p_cccd_md         = &cccd_md; 
     char_md.p_sccd_md         = NULL;
 
     
@@ -163,5 +171,68 @@ static void on_write(ble_devs_t * p_devs, ble_evt_t const * p_ble_evt){
 	//Put specific task here.
 	nrf_gpio_pin_toggle(LED_4);
     }
+
+    // Check if the Custom Valud CCCCD is written to and that the vlaue is the appropriate length, i.e 2 bytes.
+    if ((p_evt_write->handle == p_devs->value_handles.cccd_handle)
+        && (p_evt_write-> len == 2)
+    ){
+        if(p_devs->evt_handler != NULL){
+            ble_devs_evt_t evt;
+
+            if(ble_srv_is_notification_enabled(p_evt_write->data)){
+                evt.evt_type = BLE_DEVS_EVT_NOTIFICATION_ENABLED;
+            }
+            else{
+                evt.evt_type = BLE_DEVS_EVT_NOTIFICATION_DISABLED;
+            }
+            p_devs->evt_handler(p_devs, &evt);
+        }
+    }
 }
+
+uint32_t ble_devs_custom_value_upate(ble_devs_t * p_devs, uint8_t dev_value){
+    if(p_devs == NULL){
+        return NRF_ERROR_NULL;
+    }
+
+    uint32_t err_code = NRF_SUCCESS;
+    ble_gatts_value_t gatts_value;
+
+    //Initialise value struct.
+    memset(&gatts_value, 0, sizeof(gatts_value));
+
+    gatts_value.len     = sizeof(uint8_t);
+    gatts_value.offset  = 0;
+    gatts_value.p_value = &dev_value;
+
+    //Update database
+    err_code = sd_ble_gatts_value_set(p_devs->conn_handle,
+                                        p_devs->value_handles.value_handle,
+                                        &gatts_value);
+    if(err_code != NRF_SUCCESS){
+        return err_code;
+    }
+
+    // Send value if connected and notifying.
+    if((p_devs->conn_handle != BLE_CONN_HANDLE_INVALID)){
+        ble_gatts_hvx_params_t hvx_params;
+
+        memset(&hvx_params, 0, sizeof(hvx_params));
+
+        hvx_params.handle   = p_devs->value_handles.value_handle;
+        hvx_params.type     = BLE_GATT_HVX_NOTIFICATION;    
+        hvx_params.offset   = gatts_value.offset;
+        hvx_params.p_len    = &gatts_value.len;
+        hvx_params.p_data   = gatts_value.p_value;
+
+        err_code = sd_ble_gatts_hvx(p_devs->conn_handle, &hvx_params);
+    }
+    else{
+        err_code = NRF_ERROR_INVALID_STATE;
+    }
+
+    return err_code;
+}
+
+
 

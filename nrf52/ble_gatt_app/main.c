@@ -342,6 +342,12 @@ static void on_devs_evt(ble_devs_t          * p_devs_service,
 {
     switch (p_evt->evt_type)
     {
+        case BLE_DEVS_EVT_NOTIFICATION_ENABLED:
+            break;
+
+        case BLE_DEVS_EVT_NOTIFICATION_DISABLED:
+            break;
+
         case BLE_DEVS_EVT_CONNECTED:
             break;
 

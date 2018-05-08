@@ -28,6 +28,8 @@ NRF_SDH_BLE_OBSERVER(_name ## _obs,		\
 #define PEDAL_CHAR_UUID     0x1404
 
 typedef enum{
+    BLE_DEVS_EVT_NOTIFICATION_ENABLED,
+    BLE_DEVS_EVT_NOTIFICATION_DISABLED,
 	BLE_DEVS_EVT_DISCONNECTED,
 	BLE_DEVS_EVT_CONNECTED
 }ble_devs_evt_type_t;
@@ -95,6 +97,18 @@ uint32_t ble_devs_init(ble_devs_t * p_devs, const ble_devs_init_t * p_devs_init)
  */
 void ble_devs_on_ble_evt( ble_evt_t const * p_ble_evt, void * p_context);
 
+/*@brief Function for updating the custom value.
+ *
+ * @detials The application calls this fucnction when the custom value should be updated. If notification has been enable, the custom  varlue characteristic is sent to the client.
+ *
+ * @note
+ *
+ * @para[in]    p_devs          Custom Service structure.
+ * @param[in]   Custom value
+ *
+ * @return      NRF_SUCCESS on success, otherwise an error code.
+ */
 
+uint32_t ble_devs_custom_value_update(ble_devs_t * p_devs, uint8_t dev_value);
 
 #endif
