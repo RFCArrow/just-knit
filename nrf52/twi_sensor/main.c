@@ -65,7 +65,7 @@
 #define TWI_INSTANCE_ID     0
 
 #define TWI_SCL_PIN         NRF_GPIO_PIN_MAP(0,27)
-#define TWI_SDA_PIN         NRF_GPIO_PIN_MAP(0,19)
+#define TWI_SDA_PIN         NRF_GPIO_PIN_MAP(0,22)
 
 /* TWI instance. */
 const nrf_drv_twi_t m_twi = NRF_DRV_TWI_INSTANCE(TWI_INSTANCE_ID);
@@ -81,8 +81,8 @@ void twi_init (void)
     ret_code_t err_code;
 
     const nrf_drv_twi_config_t twi_bno055_config = {
-       .scl                = ARDUINO_SCL_PIN,
-       .sda                = ARDUINO_SDA_PIN,
+       .scl                = TWI_SCL_PIN,
+       .sda                = TWI_SDA_PIN,
        .frequency          = NRF_DRV_TWI_FREQ_100K,
        .interrupt_priority = APP_IRQ_PRIORITY_HIGH,
        .clear_bus_init     = false
@@ -134,9 +134,7 @@ int main(void)
     NRF_LOG_INFO("Initialising BNO055");
     NRF_LOG_FLUSH();
     bno055_init(&bno055);
-    NRF_LOG_INFO("Setting BNO055 Operation Mode");
-    NRF_LOG_FLUSH();
-    BNO055_set_mode(BNO055_POWER_MODE_NORMAL,BNO055_OPERATION_MODE_AMG);
+    BNO055_set_mode(BNO055_POWER_MODE_NORMAL,BNO055_OPERATION_MODE_ACCONLY);
 
     while (true)
     {

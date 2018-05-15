@@ -43,6 +43,8 @@ s8 BNO055_I2C_bus_write(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt)
 {
 	s32 BNO055_iERROR = 0;
 
+    uint8_t write_data[cnt+1];
+
     if(sizeof(reg_data) < (sizeof(reg_data[0])*cnt)){
         NRF_LOG_ERROR("Data register too small for number of bytes specified");
         NRF_LOG_FLUSH();
@@ -52,8 +54,11 @@ s8 BNO055_I2C_bus_write(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt)
 
     ret_code_t err_code;
 
+    write_data[0] = reg_addr;
+    memcpy(write_data+sizeof(reg_data[0]),reg_data,cnt);
+
     // Select register for writing
-    err_code = nrf_drv_twi_tx(&m_twi, dev_addr, &reg_addr, sizeof(reg_addr),true);
+    err_code = nrf_drv_twi_tx(&m_twi, dev_addr, &write_data[0], sizeof(write_data),false);
 
     if(err_code != NRF_SUCCESS){
         // Couldn't access register
@@ -62,6 +67,7 @@ s8 BNO055_I2C_bus_write(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt)
         BNO055_iERROR = -1;
         return (s8)BNO055_iERROR;
     }
+    /*
     // Read register
     err_code = nrf_drv_twi_tx(&m_twi, dev_addr, reg_data, cnt,false);
     
@@ -72,6 +78,7 @@ s8 BNO055_I2C_bus_write(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt)
         BNO055_iERROR = -1;
         return (s8)BNO055_iERROR;
     }
+    */
     
     APP_ERROR_CHECK(err_code);
 
@@ -139,9 +146,31 @@ void BNO055_delay_msek(u32 msek)
  * param[in] operation_mode
  */
 void BNO055_set_mode(uint8_t power_mode, uint8_t operation_mode){
+
+    uint8_t observed_power_mode;
+    uint8_t observed_operation_mode;
+
+    NRF_LOG_INFO("Setting Power Mode to %x", power_mode);
     
     bno055_set_power_mode(power_mode);
     bno055_set_operation_mode(operation_mode);
+    nrf_delay_ms(20);
+    bno055_get_power_mode(&observed_power_mode);
+
+    if(observed_power_mode != power_mode){
+        NRF_LOG_ERROR("Could not set Power Mode to %x, Power Mode currently: %x",power_mode, observed_power_mode);
+    }
+    else NRF_LOG_INFO("Power Mode set to %x", power_mode);
+
+    NRF_LOG_INFO("Setting Operation Mode to %x", operation_mode);
+
+    bno055_get_operation_mode(&observed_operation_mode);
+    if(observed_operation_mode != operation_mode){
+        NRF_LOG_ERROR("Could not set Operation Mode to %x, Operation Mode currently: %x",operation_mode, observed_operation_mode);
+    }
+    else NRF_LOG_INFO("Operation Mode set to %x", operation_mode);
+
+    NRF_LOG_FLUSH();
 }
 
 
