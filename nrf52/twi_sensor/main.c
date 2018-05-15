@@ -98,7 +98,8 @@ void twi_init (void)
 /**
  * @brief Function for reading data from temperature sensor.
  */
-static void read_sensor_data()
+/*
+static void read_accel_data()
 {
     int16_t accel_datax;
     int16_t accel_datay;
@@ -111,8 +112,27 @@ static void read_sensor_data()
     NRF_LOG_INFO("      z= %x",accel_dataz);
     NRF_LOG_FLUSH();
 }
+*/
 
-
+/**
+ * @brief Function for reading data from temperature sensor.
+ */
+static void read_quat_data()
+{
+    int16_t quaternion_dataw;
+    int16_t quaternion_datax;
+    int16_t quaternion_datay;
+    int16_t quaternion_dataz;
+    bno055_read_quaternion_w(&quaternion_dataw);
+    bno055_read_quaternion_x(&quaternion_datax);
+    bno055_read_quaternion_y(&quaternion_datay);
+    bno055_read_quaternion_z(&quaternion_dataz);
+    NRF_LOG_INFO("Quat: y= %x",quaternion_dataw);
+    NRF_LOG_INFO("      x= %x",quaternion_datax);
+    NRF_LOG_INFO("      y= %x",quaternion_datay);
+    NRF_LOG_INFO("      z= %x",quaternion_dataz);
+    NRF_LOG_FLUSH();
+}
 
 
 /**
@@ -135,11 +155,12 @@ int main(void)
     NRF_LOG_FLUSH();
     bno055_init(&bno055);
     BNO055_set_mode(BNO055_POWER_MODE_NORMAL,BNO055_OPERATION_MODE_ACCONLY);
+    BNO055_set_mode(BNO055_POWER_MODE_NORMAL,BNO055_OPERATION_MODE_NDOF);
 
     while (true)
     {
         nrf_delay_ms(500);
-        read_sensor_data();
+        read_quat_data();
         NRF_LOG_PROCESS();
         NRF_LOG_FLUSH();
     }

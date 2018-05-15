@@ -154,7 +154,7 @@ void BNO055_set_mode(uint8_t power_mode, uint8_t operation_mode){
     
     bno055_set_power_mode(power_mode);
     bno055_set_operation_mode(operation_mode);
-    nrf_delay_ms(20);
+    //nrf_delay_ms(500);
     bno055_get_power_mode(&observed_power_mode);
 
     if(observed_power_mode != power_mode){
