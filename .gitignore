@@ -7,6 +7,6 @@
 *.o
 *.d
 *.out
-*/_build/*
-*/_build/
-*/ble_app_template/*
+/_build/*
+/_build/
+ble_app_template/*
