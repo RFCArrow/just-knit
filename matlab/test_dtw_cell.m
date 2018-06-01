@@ -22,9 +22,9 @@ timer = 0;
 
 
 for k = k_range
-    for i = train_range
+    for j = 1:repeats
         tic;
-        for j = 1:repeats
+        for i = train_range
             accuracy(i,j,k) = dtw_classifier_cell(data_set,i,k,weight);
             counter = counter+1;
             progress = counter/problem_size;
@@ -50,6 +50,9 @@ for k = k_range
     err = std(accuracy(:,:,k)');
     errorbar(train_range,mean_accuracy(train_range),err(train_range),'*');
     legend_text(find(k==k_range)) = sprintf("k = %i",k);
+    title('Dynamic Time Warping');
+    xlabel('Template Library Size');
+    ylabel('Accuracy (%/100)');
 end
 
 legend(legend_text);
