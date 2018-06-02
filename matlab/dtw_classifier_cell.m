@@ -1,4 +1,4 @@
-function accuracy = dtw_classifier_cell(data_set, train_size, k, weight, selective)
+function accuracy = dtw_classifier_cell(data_set, train_size, k, weight, channels, selective)
 %data_set - dataset to use for training/testing
 % train_size - number of samples used in training
 % k - k-nearest neighbours classifier
@@ -11,6 +11,8 @@ if(~exist('k'))
     k = 1;
 elseif(~exist('weight'))
     weight = false;
+elseif(~exist('channels'))
+    channels = [2:15];
 elseif(~exist('selective'))
     selective = false;
 end
@@ -30,7 +32,7 @@ test_indices = shuffled_indices(train_size+1:end);
 correct = 0;
 for i = 1:test_size
     for j = 1:train_size
-        dist(i,j) = dtw(data_set{test_indices(i),1}(:,2:15)',data_set{train_indices(j),1}(:,2:15)');
+        dist(i,j) = dtw(data_set{test_indices(i),1}(:,channels)',data_set{train_indices(j),1}(:,channels)');
     end
     [sorted_dist sorted_indices] = sort(dist(i,:));
     for K = 1:k
@@ -39,7 +41,7 @@ for i = 1:test_size
     if(weight)
         candidates = unique(vote(K));
         for v = 1:length(candidates)
-           weight(v) = sum(1./(find(vote==candidates(v))));
+           weight(v) = sum(1./sorted_dist(find(vote==candidates(v))));
         end
         [value index] = max(weight(v));
         pred_class(i) = candidates(index);

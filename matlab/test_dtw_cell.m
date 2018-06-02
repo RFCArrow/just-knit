@@ -1,10 +1,11 @@
-function test_dtw_cell(data_set, train_range, repeats, k_range, weight)
+function test_dtw_cell(data_set, train_range, repeats, k_range, weight, channels)
 
-if(~exist('weight'))
-    weight = false;
-    if(~exist('k_range'))
+if(~exist('k_range'))
     k_range = 1;
-    end
+elseif(~exist('weight'))
+    weight = false;
+elseif(~exist('channels'))
+    channels = [2:15];
 end
 
 if max(train_range)>size(data_set,1)
@@ -25,7 +26,7 @@ for k = k_range
     for j = 1:repeats
         tic;
         for i = train_range
-            accuracy(i,j,k) = dtw_classifier_cell(data_set,i,k,weight);
+            accuracy(i,j,k) = dtw_classifier_cell(data_set,i,k,weight, channels);
             counter = counter+1;
             progress = counter/problem_size;
             time_remaining = floor(timer*(problem_size-counter)/repeats);
@@ -50,9 +51,9 @@ for k = k_range
     err = std(accuracy(:,:,k)');
     errorbar(train_range,mean_accuracy(train_range),err(train_range),'*');
     legend_text(find(k==k_range)) = sprintf("k = %i",k);
-    title('Dynamic Time Warping');
-    xlabel('Template Library Size');
-    ylabel('Accuracy (%/100)');
 end
+title('Dynamic Time Warping');
+xlabel('Training Size');
+ylabel('Accuracy (%/100)');
 
 legend(legend_text);
