@@ -8,6 +8,9 @@
 *.d
 *.out
 *.m~
+*.asv
+slprj/
+*rtw/
 /_build/*
 /_build/
 ble_app_template/*
