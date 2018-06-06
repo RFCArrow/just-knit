@@ -187,10 +187,14 @@ void BNO055_get_quaternions(uint8_t outBuffer[8])
     bno055_read_quaternion_x(&quaternion_datax);
     bno055_read_quaternion_y(&quaternion_datay);
     bno055_read_quaternion_z(&quaternion_dataz);
-    memset(outBuffer+(sizeof(int16_t)*0), quaternion_dataw, 2);
-    memset(outBuffer+(sizeof(int16_t)*1), quaternion_datax, 2);
-    memset(outBuffer+(sizeof(int16_t)*2), quaternion_datay, 2);
-    memset(outBuffer+(sizeof(int16_t)*3), quaternion_dataz, 2);
+    outBuffer[0] = quaternion_dataw & 0xff;
+    outBuffer[1] = ((uint16_t)quaternion_dataw & 0xff00 ) >> 8;
+    outBuffer[2] = quaternion_datax & 0xff;
+    outBuffer[3] = ((uint16_t)quaternion_datax & 0xff00 ) >> 8;
+    outBuffer[4] = quaternion_datay & 0xff;
+    outBuffer[5] = ((uint16_t)quaternion_datay & 0xff00 ) >> 8;
+    outBuffer[6] = quaternion_dataz & 0xff;
+    outBuffer[7] = ((uint16_t)quaternion_dataz & 0xff00 ) >> 8;
     return;
 }
 
