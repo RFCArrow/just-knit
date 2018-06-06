@@ -1,3 +1,6 @@
+#ifndef __FEEDBACK_H_
+#define __FEEDBACK_H_
+
 #include "nrf_gpio.h"
 
 
@@ -7,3 +10,5 @@
 
 
 void feedback_init(void);
+
+#endif
