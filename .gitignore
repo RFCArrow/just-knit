@@ -1,5 +1,4 @@
-*.swp
-*.swo
+*.sw*
 *.hex
 *.bin
 *.project
@@ -7,10 +6,11 @@
 *.o
 *.d
 *.out
+*.in
+*.map
 *.m~
 *.asv
 slprj/
 *rtw/
-/_build/*
-/_build/
+_build
 ble_app_template/*
