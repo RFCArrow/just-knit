@@ -22,10 +22,8 @@ NRF_SDH_BLE_OBSERVER(_name ## _obs,		\
 #define DEV_SERVICE_UUID_BASE         {0x93, 0xE6, 0xAF, 0x3D, 0x20, 0xB6, 0x4A, 0x6D, \
                                               0x92, 0x50, 0xCE, 0x8D, 0x58, 0x4B, 0x70, 0xDF}
 #define DEV_SERVICE_UUID    0x1400
-#define GYRO_CHAR_UUID      0x1401
-#define ACCEL_CHAR_UUID     0x1402
-#define QUART_CHAR_UUID     0x1403
-#define PEDAL_CHAR_UUID     0x1404
+#define QUAT_CHAR_UUID      0x1401
+#define FEEDBACK_CHAR_UUID  0x1402
 
 typedef enum{
     BLE_DEVS_EVT_NOTIFICATION_ENABLED,
@@ -61,7 +59,8 @@ struct ble_devs_s
 {
 	ble_devs_evt_handler_t		evt_handler;
         uint16_t                        service_handle;             /**< Handle of Custom Service (as provided by the BLE stack). */
-        ble_gatts_char_handles_t        value_handles;           /**< Handles related to the Custom Value characteristic. */
+        ble_gatts_char_handles_t        quat_handles;           /**< Handles related to the Custom Value characteristic. */
+        ble_gatts_char_handles_t        feedback_handles;           /**< Handles related to the Custom Value characteristic. */
         uint16_t                        conn_handle;                    /**< Handle of the current connection (as provided by the BLE stack, is BLE_CONN_HANDLE_INVALID if not in a connection). */
         uint8_t                       uuid_type; 
 };
@@ -77,14 +76,6 @@ struct ble_devs_s
  */
 uint32_t ble_devs_init(ble_devs_t * p_devs, const ble_devs_init_t * p_devs_init);
 
-/**@brief Function for adding the Custom Value characteristic.
- *
- * @param[in]   p_devs        Custom Service structure.
- * @param[in]   p_devs_init   Information needed to initialize the service.
- * @return      NRF_SUCCESS on success, otherwise an error code.
- */
-//static uint32_t devs_value_char_add(ble_devs_t * p_devs, const ble_devs_init_t * p_devs_init);
-
 
 /**@brief Function for handling the Application's BLE Stack events.
  *
@@ -97,18 +88,52 @@ uint32_t ble_devs_init(ble_devs_t * p_devs, const ble_devs_init_t * p_devs_init)
  */
 void ble_devs_on_ble_evt( ble_evt_t const * p_ble_evt, void * p_context);
 
-/*@brief Function for updating the custom value.
+/**@brief Function for adding the Dev Quat characteristic.
  *
- * @detials The application calls this fucnction when the custom value should be updated. If notification has been enable, the custom  varlue characteristic is sent to the client.
+ * @param[in]   p_devs        Dev Service structure.
+ * @param[in]   p_devs_init   Information needed to initialize the service.
+ * @return      NRF_SUCCESS on success, otherwise an error code.
+ */
+
+uint32_t ble_devs_quat_char_add(ble_devs_t * p_devs, const ble_devs_init_t * p_devs_init);
+
+
+/*@brief Function for updating the dev quat value.
+ *
+ * @detials The application calls this function when the quat value should be updated. If notification has been enable, the quat characteristic is sent to the client.
  *
  * @note
  *
- * @para[in]    p_devs          Custom Service structure.
+ * @para[in]    p_devs          Dev Service structure.
  * @param[in]   Custom value
  *
  * @return      NRF_SUCCESS on success, otherwise an error code.
  */
 
 uint32_t ble_devs_quat_value_update(ble_devs_t * p_devs, uint8_t quat_value[8]);
+
+/**@brief Function for adding the Dev feedback characteristic.
+ *
+ * @param[in]   p_devs        Dev Service structure.
+ * @param[in]   p_devs_init   Information needed to initialize the service.
+ * @return      NRF_SUCCESS on success, otherwise an error code.
+ */
+
+uint32_t ble_devs_feedback_char_add(ble_devs_t * p_devs, const ble_devs_init_t * p_devs_init);
+
+
+/*@brief Function for updating the dev feedback value.
+ *
+ * @detials The application calls this function when the feedback value should be updated. If notification has been enable, the feedback characteristic is sent to the client.
+ *
+ * @note
+ *
+ * @para[in]    p_devs          Dev Service structure.
+ * @param[in]   Custom value
+ *
+ * @return      NRF_SUCCESS on success, otherwise an error code.
+ */
+
+uint32_t ble_devs_feedback_value_update(ble_devs_t * p_devs, uint8_t * feedback_value);
 
 #endif

@@ -1,7 +1,6 @@
 #include "sdk_common.h"
 #include "ble_srv_common.h"
 #include "ble_devs.h"
-static uint32_t devs_value_char_add(ble_devs_t * p_devs, const ble_devs_init_t * p_devs_init);
 #include <string.h>
 #include "nrf_gpio.h"
 #include "boards.h"
@@ -42,7 +41,10 @@ uint32_t ble_devs_init(ble_devs_t * p_devs, const ble_devs_init_t * p_devs_init)
 
 
     // Add Custom Value Characteristic
-    return devs_value_char_add(p_devs, p_devs_init);
+    err_code =  ble_devs_quat_char_add(p_devs, p_devs_init);
+    VERIFY_SUCCESS(err_code);
+    err_code = ble_devs_feedback_char_add(p_devs, p_devs_init);
+    return err_code;
 }
 
 /**@brief Function for adding the Custom Value characteristic.
@@ -52,7 +54,7 @@ uint32_t ble_devs_init(ble_devs_t * p_devs, const ble_devs_init_t * p_devs_init)
  *
  * @return      NRF_SUCCESS on success, otherwise an error code.
  */
-static uint32_t devs_value_char_add(ble_devs_t * p_devs, const ble_devs_init_t * p_devs_init)
+uint32_t ble_devs_quat_char_add(ble_devs_t * p_devs, const ble_devs_init_t * p_devs_init)
 {
     uint32_t            err_code;
     ble_gatts_char_md_t char_md;
@@ -80,6 +82,10 @@ static uint32_t devs_value_char_add(ble_devs_t * p_devs, const ble_devs_init_t *
     char_md.p_cccd_md         = &cccd_md; 
     char_md.p_sccd_md         = NULL;
 
+    static char user_desc[] = "Quaternion";
+    char_md.p_char_user_desc = (uint8_t *) user_desc;
+    char_md.char_user_desc_size = strlen(user_desc);
+    char_md.char_user_desc_max_size = strlen(user_desc);
     
     memset(&attr_md, 0, sizeof(attr_md));
 
@@ -91,7 +97,7 @@ static uint32_t devs_value_char_add(ble_devs_t * p_devs, const ble_devs_init_t *
     attr_md.vlen       = 0;
 
     ble_uuid.type = p_devs->uuid_type;
-    ble_uuid.uuid = GYRO_CHAR_UUID;
+    ble_uuid.uuid = QUAT_CHAR_UUID;
 
     memset(&attr_char_value, 0, sizeof(attr_char_value));
 
@@ -101,7 +107,7 @@ static uint32_t devs_value_char_add(ble_devs_t * p_devs, const ble_devs_init_t *
     attr_char_value.init_offs 	= 0;
     attr_char_value.max_len	= 8*sizeof(uint8_t);
 
-    err_code = sd_ble_gatts_characteristic_add(p_devs->service_handle, &char_md, &attr_char_value, &p_devs->value_handles);
+    err_code = sd_ble_gatts_characteristic_add(p_devs->service_handle, &char_md, &attr_char_value, &p_devs->quat_handles);
     if(err_code != NRF_SUCCESS){
 	return err_code;
     }
@@ -167,13 +173,13 @@ static void on_write(ble_devs_t * p_devs, ble_evt_t const * p_ble_evt){
     ble_gatts_evt_write_t const * p_evt_write = &p_ble_evt->evt.gatts_evt.params.write;
 
     //Check if the handle passed with the event matches the Dev Value Characteristic handle
-    if(p_evt_write->handle == p_devs->value_handles.value_handle){
+    if(p_evt_write->handle == p_devs->feedback_handles.value_handle){
 	//Put specific task here.
 	nrf_gpio_pin_toggle(LED_4);
     }
 
     // Check if the Custom Valud CCCCD is written to and that the vlaue is the appropriate length, i.e 2 bytes.
-    if ((p_evt_write->handle == p_devs->value_handles.cccd_handle)
+    if ((p_evt_write->handle == p_devs->quat_handles.cccd_handle)
         && (p_evt_write-> len == 2)
     ){
         if(p_devs->evt_handler != NULL){
@@ -207,7 +213,7 @@ uint32_t ble_devs_quat_value_update(ble_devs_t * p_devs, uint8_t quat_value[8]){
 
     //Update database
     err_code = sd_ble_gatts_value_set(p_devs->conn_handle,
-                                        p_devs->value_handles.value_handle,
+                                        p_devs->quat_handles.value_handle,
                                         &gatts_value);
     if(err_code != NRF_SUCCESS){
         return err_code;
@@ -219,7 +225,7 @@ uint32_t ble_devs_quat_value_update(ble_devs_t * p_devs, uint8_t quat_value[8]){
 
         memset(&hvx_params, 0, sizeof(hvx_params));
 
-        hvx_params.handle   = p_devs->value_handles.value_handle;
+        hvx_params.handle   = p_devs->quat_handles.value_handle;
         hvx_params.type     = BLE_GATT_HVX_NOTIFICATION;    
         hvx_params.offset   = gatts_value.offset;
         hvx_params.p_len    = &gatts_value.len;
@@ -234,5 +240,112 @@ uint32_t ble_devs_quat_value_update(ble_devs_t * p_devs, uint8_t quat_value[8]){
     return err_code;
 }
 
+
+uint32_t ble_devs_feedback_char_add(ble_devs_t * p_devs, const ble_devs_init_t * p_devs_init)
+{
+    uint32_t            err_code;
+    ble_gatts_char_md_t char_md;
+    ble_gatts_attr_md_t cccd_md;
+    ble_gatts_attr_t    attr_char_value;
+    ble_uuid_t          ble_uuid;
+    ble_gatts_attr_md_t attr_md;
+
+    memset(&cccd_md, 0, sizeof(cccd_md));
+
+    // Read operation on cccd should be possible without authentication
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cccd_md.read_perm);
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cccd_md.write_perm);
+
+    cccd_md.vloc        = BLE_GATTS_VLOC_STACK;
+
+    memset(&char_md, 0, sizeof(char_md));
+
+    char_md.char_props.read   = 1;
+    char_md.char_props.write  = 1;
+    char_md.char_props.notify = 1; 
+    char_md.p_char_user_desc  = NULL;
+    char_md.p_char_pf         = NULL;
+    char_md.p_user_desc_md    = NULL;
+    char_md.p_cccd_md         = &cccd_md; 
+    char_md.p_sccd_md         = NULL;
+
+    static char user_desc[] = "Feedback";
+    char_md.p_char_user_desc = (uint8_t *) user_desc;
+    char_md.char_user_desc_size = strlen(user_desc);
+    char_md.char_user_desc_max_size = strlen(user_desc);
+
+    
+    memset(&attr_md, 0, sizeof(attr_md));
+
+    attr_md.read_perm  = p_devs_init->value_char_attr_md.read_perm;
+    attr_md.write_perm = p_devs_init->value_char_attr_md.write_perm;
+    attr_md.vloc       = BLE_GATTS_VLOC_STACK;
+    attr_md.rd_auth    = 0;
+    attr_md.wr_auth    = 0;
+    attr_md.vlen       = 0;
+
+    ble_uuid.type = p_devs->uuid_type;
+    ble_uuid.uuid = FEEDBACK_CHAR_UUID;
+
+    memset(&attr_char_value, 0, sizeof(attr_char_value));
+
+    attr_char_value.p_uuid	= &ble_uuid;
+    attr_char_value.p_attr_md	= &attr_md;
+    attr_char_value.init_len	= sizeof(uint8_t);
+    attr_char_value.init_offs 	= 0;
+    attr_char_value.max_len	= sizeof(uint8_t);
+
+    err_code = sd_ble_gatts_characteristic_add(p_devs->service_handle, &char_md, &attr_char_value, &p_devs->feedback_handles);
+    if(err_code != NRF_SUCCESS){
+	return err_code;
+    }
+    return NRF_SUCCESS;
+
+}
+
+
+uint32_t ble_devs_feedback_value_update(ble_devs_t * p_devs, uint8_t * feedback_value){
+    if(p_devs == NULL){
+        return NRF_ERROR_NULL;
+    }
+
+    uint32_t err_code = NRF_SUCCESS;
+    ble_gatts_value_t gatts_value;
+
+    //Initialise value struct.
+    memset(&gatts_value, 0, sizeof(gatts_value));
+
+    gatts_value.len     = 1;
+    gatts_value.offset  = 0;
+    gatts_value.p_value = feedback_value;
+
+    //Update database
+    err_code = sd_ble_gatts_value_set(p_devs->conn_handle,
+                                        p_devs->feedback_handles.value_handle,
+                                        &gatts_value);
+    if(err_code != NRF_SUCCESS){
+        return err_code;
+    }
+
+    // Send value if connected and notifying.
+    if((p_devs->conn_handle != BLE_CONN_HANDLE_INVALID)){
+        ble_gatts_hvx_params_t hvx_params;
+
+        memset(&hvx_params, 0, sizeof(hvx_params));
+
+        hvx_params.handle   = p_devs->feedback_handles.value_handle;
+        hvx_params.type     = BLE_GATT_HVX_NOTIFICATION;    
+        hvx_params.offset   = gatts_value.offset;
+        hvx_params.p_len    = &gatts_value.len;
+        hvx_params.p_data   = gatts_value.p_value;
+
+        err_code = sd_ble_gatts_hvx(p_devs->conn_handle, &hvx_params);
+    }
+    else{
+        err_code = NRF_ERROR_INVALID_STATE;
+    }
+
+    return err_code;
+}
 
 
