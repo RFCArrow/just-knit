@@ -11,11 +11,10 @@ void feedback_init(){
 
    //Initialise LEDs 
     nrf_gpio_cfg_output(RED_PIN);
-    nrf_gpio_pin_clear(RED_PIN);
     nrf_gpio_cfg_output(BLUE_PIN);
-    nrf_gpio_pin_clear(BLUE_PIN);
     nrf_gpio_cfg_output(GREEN_PIN);
-    nrf_gpio_pin_clear(GREEN_PIN);
+
+    fb_set_led(FB_OFF);
 
     //Initial feedback fsm
     feedback_handler = fb_state_init;
@@ -46,6 +45,7 @@ fb_state_t fb_state_sleep(const fb_event_t event){
     switch(event){
         case FB_EVT_ENTRY:
             //turn off all lights
+            fb_set_led(FB_OFF);
         break;
         case FB_EVT_EXIT:
             //no need to do anything
@@ -96,9 +96,11 @@ fb_state_t fb_state_connected(const fb_event_t event){
     switch(event){
         case FB_EVT_ENTRY:
             //set leds blue
+            fb_set_led(FB_BLUE);
         break;
         case FB_EVT_EXIT:
             //turn leds off
+            fb_set_led(FB_OFF);
         break;
         case FB_EVT_BLE_DISCONNECT:
             fb_transition(&fb_state_advertising);
@@ -130,10 +132,12 @@ fb_state_t fb_state_knit(const fb_event_t event){
     switch(event){
         case FB_EVT_ENTRY:
             //turn on blue led
+            fb_set_led(FB_BLUE);
             //start knit animation
         break;
         case FB_EVT_EXIT:
             //turn off blue led
+            fb_set_led(FB_OFF);
             //stop knit animation
         break;
         case FB_EVT_BLE_DISCONNECT:
@@ -167,10 +171,12 @@ fb_state_t fb_state_purl(const fb_event_t event){
     switch(event){
         case FB_EVT_ENTRY:
             //turn on blue led
+            fb_set_led(FB_BLUE);
             //start purl animation
         break;
         case FB_EVT_EXIT:
             //turn off blue led
+            fb_set_led(FB_OFF);
             //stop purl animation
         break;
         case FB_EVT_BLE_DISCONNECT:
@@ -204,10 +210,12 @@ fb_state_t fb_state_correct(const fb_event_t event){
     switch(event){
         case FB_EVT_ENTRY:
             //turn on green led
+            fb_set_led(FB_GREEN);
             //turn on motor
         break;
         case FB_EVT_EXIT:
             //turn off green led
+            fb_set_led(FB_OFF);
             //turn off motor
         break;
         case FB_EVT_BLE_DISCONNECT:
@@ -236,10 +244,12 @@ fb_state_t fb_state_incorrect(const fb_event_t event){
     switch(event){
         case FB_EVT_ENTRY:
             //turn on red led
+            fb_set_led(FB_RED);
             //turn on motor
         break;
         case FB_EVT_EXIT:
             //turn off red led
+            fb_set_led(FB_OFF);
             //turn off motor
         break;
         case FB_EVT_BLE_DISCONNECT:
@@ -269,9 +279,11 @@ fb_state_t fb_state_low_power(const fb_event_t event){
    switch(event){
         case FB_EVT_ENTRY:
             //turn yellow leds on
+            fb_set_led(FB_YELLOW);
         break;
         case FB_EVT_EXIT:
             //turn yellow leds off
+            fb_set_led(FB_OFF);
         break;
         case FB_EVT_CHARGING_BEGIN:
             fb_transition(&fb_state_charging);
@@ -309,10 +321,12 @@ fb_state_t fb_state_charged(const fb_event_t event){
     ret_code_t err_code = NRF_SUCCESS;
     switch(event){
         case FB_EVT_ENTRY:
-            //begin softblink
+            //set led green
+            fb_set_led(FB_GREEN);
         break;
         case FB_EVT_EXIT:
-            //stop softblink
+            //set led off
+            fb_set_led(FB_OFF);
         break;
         case FB_EVT_CHARGER_DISCONNECT:
             fb_transition(&fb_state_sleep);
