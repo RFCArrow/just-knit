@@ -15,6 +15,7 @@ SRC_FILES += \
   $(PROJ_DIR)/bno055.c \
   $(PROJ_DIR)/bno055_api_plugin.c \
   $(PROJ_DIR)/feedback.c \
+  $(PROJ_DIR)/fsm.c \
   $(SDK_ROOT)/modules/nrfx/mdk/gcc_startup_nrf52.S \
   $(SDK_ROOT)/components/libraries/led_softblink/led_softblink.c \
   $(SDK_ROOT)/components/libraries/low_power_pwm/low_power_pwm.c \

@@ -1,5 +1,7 @@
 #include "feedback.h"
 #include "nrf_gpio.h"
+#include "led_softblink.h"
+#include "sdk_common.h"
 
 
 void feedback_init(){
@@ -16,333 +18,50 @@ void feedback_init(){
 
     fb_set_led(FB_OFF);
 
-    //Initial feedback fsm
-    feedback_handler = fb_state_init;
-}
-
-void fb_transition( fb_state_t (*new_state)(const fb_event_t event) ){
-    feedback_handler(FB_EVT_EXIT);
-    feedback_handler = new_state;
-    feedback_handler(FB_EVT_ENTRY);
-}
-
-//Initial State
-fb_state_t fb_state_init(const fb_event_t event){
-    ret_code_t err_code = NRF_SUCCESS;
-    switch(event){
-        case FB_EVT_MOVEMENT_DETECTED:
-            fb_transition(&fb_state_advertising);
-        break;
-        default:
-            //do nothing
-        break;
-    }
-    return err_code;
-}
-
-fb_state_t fb_state_sleep(const fb_event_t event){
-    ret_code_t err_code = NRF_SUCCESS;
-    switch(event){
-        case FB_EVT_ENTRY:
-            //turn off all lights
-            fb_set_led(FB_OFF);
-        break;
-        case FB_EVT_EXIT:
-            //no need to do anything
-        break;
-        case FB_EVT_MOVEMENT_DETECTED:
-            fb_transition(&fb_state_advertising);
-        break;
-        case FB_EVT_CHARGING_BEGIN:
-            fb_transition(&fb_state_charging);
-        break;
-        default:
-            //no need to do anything
-        break;
-    }
-    return err_code;
-}
-
-fb_state_t fb_state_advertising(const fb_event_t event){
-    ret_code_t err_code = NRF_SUCCESS;
-    switch(event){
-        case FB_EVT_ENTRY:
-            //begin softblink
-        break;
-        case FB_EVT_EXIT:
-            //stop softblink
-        break;
-        case FB_EVT_BLE_CONNECT:
-            fb_transition(&fb_state_connected);
-        break;
-        case FB_EVT_ADVERTISING_TIMEOUT:
-            fb_transition(&fb_state_sleep);
-        break;
-        case FB_EVT_LOW_POWER:
-            fb_transition(&fb_state_low_power);
-        break;
-        case FB_EVT_CHARGING_BEGIN:
-            fb_transition(&fb_state_charging);
-        break;
-        default:
-            //do nothing
-        break;
-    }
-    return err_code;
-}
-
-fb_state_t fb_state_connected(const fb_event_t event){
-    ret_code_t err_code = NRF_SUCCESS;
-    switch(event){
-        case FB_EVT_ENTRY:
-            //set leds blue
-            fb_set_led(FB_BLUE);
-        break;
-        case FB_EVT_EXIT:
-            //turn leds off
-            fb_set_led(FB_OFF);
-        break;
-        case FB_EVT_BLE_DISCONNECT:
-            fb_transition(&fb_state_advertising);
-        break;
-        case FB_EVT_MOVEMENT_TIMEOUT:
-            fb_transition(&fb_state_sleep);
-        break;
-        case FB_EVT_LOW_POWER:
-            fb_transition(&fb_state_low_power);
-        break;
-        case FB_EVT_CHARGING_BEGIN:
-            fb_transition(&fb_state_charging);
-        break;
-        case FB_EVT_REQUEST_KNIT:
-            fb_transition(&fb_state_knit);
-        break;
-        case FB_EVT_REQUEST_PURL:
-            fb_transition(&fb_state_purl);
-        break;
-        default:
-            //do nothing
-        break;
-    }
-    return err_code;
-}
-fb_state_t fb_state_knit(const fb_event_t event){
-
-    ret_code_t err_code = NRF_SUCCESS;
-    switch(event){
-        case FB_EVT_ENTRY:
-            //turn on blue led
-            fb_set_led(FB_BLUE);
-            //start knit animation
-        break;
-        case FB_EVT_EXIT:
-            //turn off blue led
-            fb_set_led(FB_OFF);
-            //stop knit animation
-        break;
-        case FB_EVT_BLE_DISCONNECT:
-            fb_transition(&fb_state_advertising);
-        break;
-        case FB_EVT_MOVEMENT_TIMEOUT:
-            fb_transition(&fb_state_sleep);
-        break;
-        case FB_EVT_LOW_POWER:
-            fb_transition(&fb_state_low_power);
-        break;
-        case FB_EVT_CHARGING_BEGIN:
-            fb_transition(&fb_state_charging);
-        break;
-        case FB_EVT_KNIT_DETECTED:
-            fb_transition(&fb_state_correct);
-        break;
-        case FB_EVT_PURL_DETECTED:
-            fb_transition(&fb_state_incorrect);
-        break;
-        default:
-            //do nothing
-        break;
-    }
-    return err_code;
-}
-
-fb_state_t fb_state_purl(const fb_event_t event){
-
-    ret_code_t err_code = NRF_SUCCESS;
-    switch(event){
-        case FB_EVT_ENTRY:
-            //turn on blue led
-            fb_set_led(FB_BLUE);
-            //start purl animation
-        break;
-        case FB_EVT_EXIT:
-            //turn off blue led
-            fb_set_led(FB_OFF);
-            //stop purl animation
-        break;
-        case FB_EVT_BLE_DISCONNECT:
-            fb_transition(&fb_state_advertising);
-        break;
-        case FB_EVT_MOVEMENT_TIMEOUT:
-            fb_transition(&fb_state_sleep);
-        break;
-        case FB_EVT_LOW_POWER:
-            fb_transition(&fb_state_low_power);
-        break;
-        case FB_EVT_CHARGING_BEGIN:
-            fb_transition(&fb_state_charging);
-        break;
-        case FB_EVT_KNIT_DETECTED:
-            fb_transition(&fb_state_incorrect);
-        break;
-        case FB_EVT_PURL_DETECTED:
-            fb_transition(&fb_state_correct);
-        break;
-        default:
-            //do nothing
-        break;
-    }
-    return err_code;
-}
-
-fb_state_t fb_state_correct(const fb_event_t event){
-
-    ret_code_t err_code = NRF_SUCCESS;
-    switch(event){
-        case FB_EVT_ENTRY:
-            //turn on green led
-            fb_set_led(FB_GREEN);
-            //turn on motor
-        break;
-        case FB_EVT_EXIT:
-            //turn off green led
-            fb_set_led(FB_OFF);
-            //turn off motor
-        break;
-        case FB_EVT_BLE_DISCONNECT:
-            fb_transition(&fb_state_advertising);
-        break;
-        case FB_EVT_MOVEMENT_TIMEOUT:
-            fb_transition(&fb_state_sleep);
-        break;
-        case FB_EVT_LOW_POWER:
-            fb_transition(&fb_state_low_power);
-        break;
-        case FB_EVT_CHARGING_BEGIN:
-            fb_transition(&fb_state_charging);
-        break;
-        case FB_EVT_ANIMATION_END:
-            fb_transition(&fb_state_connected);
-        break;
-        default:
-            //do nothing
-        break;
-    }
-    return err_code;
-}
-fb_state_t fb_state_incorrect(const fb_event_t event){
-    ret_code_t err_code = NRF_SUCCESS;
-    switch(event){
-        case FB_EVT_ENTRY:
-            //turn on red led
-            fb_set_led(FB_RED);
-            //turn on motor
-        break;
-        case FB_EVT_EXIT:
-            //turn off red led
-            fb_set_led(FB_OFF);
-            //turn off motor
-        break;
-        case FB_EVT_BLE_DISCONNECT:
-            fb_transition(&fb_state_advertising);
-        break;
-        case FB_EVT_MOVEMENT_TIMEOUT:
-            fb_transition(&fb_state_sleep);
-        break;
-        case FB_EVT_LOW_POWER:
-            fb_transition(&fb_state_low_power);
-        break;
-        case FB_EVT_CHARGING_BEGIN:
-            fb_transition(&fb_state_charging);
-        break;
-        case FB_EVT_ANIMATION_END:
-            fb_transition(&fb_state_connected);
-        break;
-        default:
-            //do nothing
-        break;
-    }
-    return err_code;
-}
-
-fb_state_t fb_state_low_power(const fb_event_t event){
-   ret_code_t err_code = NRF_SUCCESS;
-   switch(event){
-        case FB_EVT_ENTRY:
-            //turn yellow leds on
-            fb_set_led(FB_YELLOW);
-        break;
-        case FB_EVT_EXIT:
-            //turn yellow leds off
-            fb_set_led(FB_OFF);
-        break;
-        case FB_EVT_CHARGING_BEGIN:
-            fb_transition(&fb_state_charging);
-        break;
-        default:
-            //do nothing
-        break;
-    }
-    return err_code;
-}
-
-
-fb_state_t fb_state_charging(const fb_event_t event){
-    ret_code_t err_code = NRF_SUCCESS;
-    switch(event){
-        case FB_EVT_ENTRY:
-            //begin softblink
-        break;
-        case FB_EVT_EXIT:
-            //stop softblink
-        break;
-        case FB_EVT_CHARGER_DISCONNECT:
-            fb_transition(&fb_state_sleep);
-        break;
-        case FB_EVT_CHARGING_COMPLETE:
-            fb_transition(&fb_state_charged);
-        break;
-        default:
-            //do nothing
-        break;
-    }
-    return err_code;
-}
-fb_state_t fb_state_charged(const fb_event_t event){
-    ret_code_t err_code = NRF_SUCCESS;
-    switch(event){
-        case FB_EVT_ENTRY:
-            //set led green
-            fb_set_led(FB_GREEN);
-        break;
-        case FB_EVT_EXIT:
-            //set led off
-            fb_set_led(FB_OFF);
-        break;
-        case FB_EVT_CHARGER_DISCONNECT:
-            fb_transition(&fb_state_sleep);
-        break;
-        case FB_EVT_CHARGING_BEGIN:
-            fb_transition(&fb_state_charging);
-        break;
-        default:
-            //do nothing
-        break;
-    }
-    return err_code;
 }
 
 void fb_set_led(fb_led_mask_t colour_mask){
-    pin_mask = FB_LED_PINS;
+    uint32_t pin_mask = FB_LED_PINS;
     NRF_GPIO->OUT = (NRF_GPIO->OUT &~pin_mask) | colour_mask;
+}
+
+void fb_start_softblink_purl(void){
+    ret_code_t err_code;
+    const led_sb_init_params_t led_sb_params = FB_REQ_PURL_SOFTBLINK_PARAMS;
+    err_code = led_softblink_init(&led_sb_params);
+    APP_ERROR_CHECK(err_code);
+    err_code = led_softblink_start(FB_RED);
+    APP_ERROR_CHECK(err_code);
+}
+
+void fb_start_softblink_knit(void){
+    ret_code_t err_code;
+    const led_sb_init_params_t led_sb_params = FB_REQ_KNIT_SOFTBLINK_PARAMS;
+    err_code = led_softblink_init(&led_sb_params);
+    APP_ERROR_CHECK(err_code);
+    err_code = led_softblink_start(FB_GREEN);
+    APP_ERROR_CHECK(err_code);
+}
+void fb_start_softblink_charging(void){
+    ret_code_t err_code;
+    const led_sb_init_params_t led_sb_params = FB_CHARGING_SOFTBLINK_PARAMS;
+    err_code = led_softblink_init(&led_sb_params);
+    APP_ERROR_CHECK(err_code);
+    err_code = led_softblink_start(FB_WHITE);
+    APP_ERROR_CHECK(err_code);
+}
+void fb_start_softblink_advertising(void){
+    ret_code_t err_code;
+    const led_sb_init_params_t led_sb_params = FB_ADVERTISING_SOFTBLINK_PARAMS;
+    err_code = led_softblink_init(&led_sb_params);
+    APP_ERROR_CHECK(err_code);
+    err_code = led_softblink_start(FB_BLUE);
+    APP_ERROR_CHECK(err_code);
+}
+void fb_stop_softblink(void){
+    ret_code_t err_code;
+    err_code = led_softblink_stop();
+    APP_ERROR_CHECK(err_code);
+    err_code = led_softblink_uninit();
 }
 

@@ -87,6 +87,7 @@
 #include "bno055.h"
 #include "bno055_api_plugin.h"
 #include "feedback.h"
+#include "fsm.h"
 
 #define DEBUG
 
@@ -860,6 +861,7 @@ int main(void)
     conn_params_init();
     peer_manager_init();
     feedback_init();
+    fsm_init();
     twi_init();
     BNO055_api_init(&bno055);
     //Ensure that 650ms passes before this call

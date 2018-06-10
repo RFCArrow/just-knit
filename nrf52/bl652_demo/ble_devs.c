@@ -5,6 +5,7 @@
 #include "nrf_gpio.h"
 #include "boards.h"
 #include "nrf_log.h"
+#include "fsm.h"
 
 static void on_connect(ble_devs_t * p_devs, ble_evt_t const * p_ble_evt);
 static void on_disconnect(ble_devs_t * p_devs, ble_evt_t const * p_ble_evt);
@@ -174,8 +175,62 @@ static void on_write(ble_devs_t * p_devs, ble_evt_t const * p_ble_evt){
 
     //Check if the handle passed with the event matches the Dev Value Characteristic handle
     if(p_evt_write->handle == p_devs->feedback_handles.value_handle){
-	//Put specific task here.
-	nrf_gpio_pin_toggle(LED_4);
+        uint8_t data;
+        ble_gatts_value_t feedback_value;
+        feedback_value.p_value = &data;
+        feedback_value.len = 1;
+        feedback_value.offset = 0;
+
+        sd_ble_gatts_value_get(p_devs->conn_handle, p_devs->feedback_handles.value_handle, &feedback_value);
+        const uint8_t fsm_command = data;
+        NRF_LOG_INFO("Received feedback cmd: %x",fsm_command);
+        switch(fsm_command){
+            case FSM_CMD_MD:
+                fsm_handler(FSM_EVT_MOVEMENT_DETECTED);
+            break;
+            case FSM_CMD_AT:
+                fsm_handler(FSM_EVT_ADVERTISING_TIMEOUT);
+            break;
+            case FSM_CMD_CD:
+                fsm_handler(FSM_EVT_CHARGER_DISCONNECT);
+            break;
+            case FSM_CMD_LP:
+                fsm_handler(FSM_EVT_LOW_POWER);
+            break;
+            case FSM_CMD_CB:
+                fsm_handler(FSM_EVT_CHARGING_BEGIN);
+            break;
+            case FSM_CMD_CC:
+                fsm_handler(FSM_EVT_CHARGING_COMPLETE);
+            break;
+            case FSM_CMD_MT:
+                fsm_handler(FSM_EVT_MOVEMENT_TIMEOUT);
+            break;
+            case FSM_CMD_BC:
+                fsm_handler(FSM_EVT_BLE_CONNECT);
+            break;
+            case FSM_CMD_BD:
+                fsm_handler(FSM_EVT_BLE_DISCONNECT);
+            break;
+            case FSM_CMD_RK:
+                fsm_handler(FSM_EVT_REQUEST_KNIT);
+            break;
+            case FSM_CMD_RP:
+                fsm_handler(FSM_EVT_REQUEST_PURL);
+            break;
+            case FSM_CMD_KD:
+                fsm_handler(FSM_EVT_KNIT_DETECTED);
+            break;
+            case FSM_CMD_PD:
+                fsm_handler(FSM_EVT_PURL_DETECTED);
+            break;
+            case FSM_CMD_AE:
+                fsm_handler(FSM_EVT_ANIMATION_END);
+            break;
+            default:
+                //do nothing
+            break;
+        }
     }
 
     // Check if the Custom Valud CCCCD is written to and that the vlaue is the appropriate length, i.e 2 bytes.

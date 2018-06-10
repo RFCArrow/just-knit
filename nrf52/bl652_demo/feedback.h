@@ -7,60 +7,78 @@
 #define BLUE_PIN            NRF_GPIO_PIN_MAP(0,7)
 #define GREEN_PIN           NRF_GPIO_PIN_MAP(0,6)
 
-#define FB_LED_PINS         RED_PIN|GREEN_PIN|BLUE_PIN
 #define FB_OFF              0x0
-#define FB_RED              RED_PIN
-#define FB_GREEN            GREEN_PIN
-#define FB_BLUE             BLUE_PIN
+#define FB_RED              0x1<<8
+#define FB_GREEN            0x1<<6
+#define FB_BLUE             0x1<<7
 #define FB_YELLOW           FB_RED|FB_GREEN
 #define FB_MAGENTA          FB_RED|FB_BLUE
 #define FB_AQUA             FB_GREEN|FB_BLUE
 #define FB_WHITE            FB_RED|FB_GREEN|FB_BLUE
+#define FB_LED_PINS         FB_RED|FB_GREEN|FB_BLUE
 
 #define MOTOR_PIN           NRF_GPIO_PIN_MAP(0,3)
 #define BUZZ_PIN            NRF_GPIO_PIN_MAP(0,2)
 
+#define FB_CHARGING_SOFTBLINK_PARAMS        \
+        {                                   \
+            .active_high        = true,     \
+            .duty_cycle_max     = 200,      \
+            .duty_cycle_min     = 5,        \
+            .duty_cycle_step    = 1,        \
+            .off_time_ticks     = 255,      \
+            .on_time_ticks      = 255,      \
+            .leds_pin_bm        = FB_WHITE, \
+            .p_leds_port        = NRF_GPIO  \
+        }
 
-typedef enum{
-    FB_EVT_INIT,
-    FB_EVT_ENTRY,
-    FB_EVT_EXIT,
-    FB_EVT_MOVEMENT_TIMEOUT,
-    FB_EVT_ADVERTISING_TIMEOUT,
-    FB_EVT_CHARGER_DISCONNECT,
-    FB_EVT_LOW_POWER,
-    FB_EVT_CHARGING_BEGIN,
-    FB_EVT_CHARGING_COMPLETE,
-    FB_EVT_MOVEMENT_DETECTED,
-    FB_EVT_BLE_CONNECT,
-    FB_EVT_BLE_DISCONNECT,
-    FB_EVT_REQUEST_KNIT,
-    FB_EVT_REQUEST_PURL,
-    FB_EVT_KNIT_DETECTED,
-    FB_EVT_PURL_DETECTED,
-    FB_EVT_ANIMATION_END,
-} fb_event_t;
+#define FB_ADVERTISING_SOFTBLINK_PARAMS     \
+        {                                   \
+            .active_high        = true,     \
+            .duty_cycle_max     = 200,      \
+            .duty_cycle_min     = 5,        \
+            .duty_cycle_step    = 1,        \
+            .off_time_ticks     = 255,      \
+            .on_time_ticks      = 255,      \
+            .leds_pin_bm        = FB_BLUE,  \
+            .p_leds_port        = NRF_GPIO  \
+        }
 
-uint32_t (* feedback_handler)(const fb_event_t event);
+#define FB_REQ_KNIT_SOFTBLINK_PARAMS        \
+        {                                   \
+            .active_high        = true,     \
+            .duty_cycle_max     = 100,      \
+            .duty_cycle_min     = 5,        \
+            .duty_cycle_step    = 10,        \
+            .off_time_ticks     = 127,      \
+            .on_time_ticks      = 127,      \
+            .leds_pin_bm        = FB_GREEN, \
+            .p_leds_port        = NRF_GPIO  \
+        }
 
-typedef uint32_t fb_state_t;
-void fb_transition( fb_state_t (*new_state)(const fb_event_t event) );
+#define FB_REQ_PURL_SOFTBLINK_PARAMS        \
+        {                                   \
+            .active_high        = true,     \
+            .duty_cycle_max     = 100,      \
+            .duty_cycle_min     = 5,        \
+            .duty_cycle_step    = 10,       \
+            .off_time_ticks     = 127,      \
+            .on_time_ticks      = 127,      \
+            .leds_pin_bm        = FB_RED, \
+            .p_leds_port        = NRF_GPIO  \
+        }
 
-fb_state_t fb_state_init(const fb_event_t event);
-fb_state_t fb_state_sleep(const fb_event_t event);
-fb_state_t fb_state_advertising(const fb_event_t event);
-fb_state_t fb_state_connected(const fb_event_t event);
-fb_state_t fb_state_knit(const fb_event_t event);
-fb_state_t fb_state_purl(const fb_event_t event);
-fb_state_t fb_state_correct(const fb_event_t event);
-fb_state_t fb_state_incorrect(const fb_event_t event);
-fb_state_t fb_state_low_power(const fb_event_t event);
-fb_state_t fb_state_charging(const fb_event_t event);
-fb_state_t fb_state_charged(const fb_event_t event);
-
-typedef uint32_t fb_led_mask_t
+typedef uint32_t fb_led_mask_t;
 void fb_set_led(fb_led_mask_t colour_mask);
 
 void feedback_init(void);
+
+
+void fb_start_softblink_purl(void);
+void fb_start_softblink_knit(void);
+void fb_start_softblink_charging(void);
+void fb_start_softblink_advertising(void);
+void fb_stop_softblink(void);
+
 
 #endif
