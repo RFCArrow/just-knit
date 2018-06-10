@@ -7,6 +7,16 @@
 #define BLUE_PIN            NRF_GPIO_PIN_MAP(0,7)
 #define GREEN_PIN           NRF_GPIO_PIN_MAP(0,6)
 
+#define FB_LED_PINS         RED_PIN|GREEN_PIN|BLUE_PIN
+#define FB_OFF              0x0
+#define FB_RED              RED_PIN
+#define FB_GREEN            GREEN_PIN
+#define FB_BLUE             BLUE_PIN
+#define FB_YELLOW           FB_RED|FB_GREEN
+#define FB_MAGENTA          FB_RED|FB_BLUE
+#define FB_AQUA             FB_GREEN|FB_BLUE
+#define FB_WHITE            FB_RED|FB_GREEN|FB_BLUE
+
 #define MOTOR_PIN           NRF_GPIO_PIN_MAP(0,3)
 #define BUZZ_PIN            NRF_GPIO_PIN_MAP(0,2)
 
@@ -48,7 +58,8 @@ fb_state_t fb_state_low_power(const fb_event_t event);
 fb_state_t fb_state_charging(const fb_event_t event);
 fb_state_t fb_state_charged(const fb_event_t event);
 
-
+typedef uint32_t fb_led_mask_t
+void fb_set_led(fb_led_mask_t colour_mask);
 
 void feedback_init(void);
 

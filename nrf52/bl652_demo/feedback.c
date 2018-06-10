@@ -326,3 +326,9 @@ fb_state_t fb_state_charged(const fb_event_t event){
     }
     return err_code;
 }
+
+void fb_set_led(fb_led_mask_t colour_mask){
+    pin_mask = FB_LED_PINS;
+    NRF_GPIO->OUT = (NRF_GPIO->OUT &~pin_mask) | colour_mask;
+}
+
