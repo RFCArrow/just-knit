@@ -16,35 +16,35 @@ typedef enum{
     FB_EVT_ENTRY,
     FB_EVT_EXIT,
     FB_EVT_MOVEMENT_TIMEOUT,
+    FB_EVT_ADVERTISING_TIMEOUT,
     FB_EVT_CHARGER_DISCONNECT,
+    FB_EVT_LOW_POWER,
     FB_EVT_CHARGING_BEGIN,
     FB_EVT_CHARGING_COMPLETE,
     FB_EVT_MOVEMENT_DETECTED,
     FB_EVT_BLE_CONNECT,
     FB_EVT_BLE_DISCONNECT,
-    FB_EVT_KNIT_REQUEST,
-    FB_EVT_PURL_REQUEST,
-    FB_EVT_CORRECT_STITCH,
-    FB_EVT_INCORRECT_STITCH,
+    FB_EVT_REQUEST_KNIT,
+    FB_EVT_REQUEST_PURL,
+    FB_EVT_KNIT_DETECTED,
+    FB_EVT_PURL_DETECTED,
+    FB_EVT_ANIMATION_END,
 } fb_event_t;
 
 uint32_t (* feedback_handler)(const fb_event_t event);
 
 typedef uint32_t fb_state_t;
-inline void fb_transition( fb_state_t (*new_state)(const fb_event_t event) ){
-    feedback_handler(FB_EVT_EXIT);
-    feedback_handler = new_state;
-    feedback_handler(FB_EVT_ENTRY);
-}
+void fb_transition( fb_state_t (*new_state)(const fb_event_t event) );
 
 fb_state_t fb_state_init(const fb_event_t event);
-fb_state_t fb_state_sleeping(const fb_event_t event);
+fb_state_t fb_state_sleep(const fb_event_t event);
 fb_state_t fb_state_advertising(const fb_event_t event);
 fb_state_t fb_state_connected(const fb_event_t event);
 fb_state_t fb_state_knit(const fb_event_t event);
 fb_state_t fb_state_purl(const fb_event_t event);
 fb_state_t fb_state_correct(const fb_event_t event);
 fb_state_t fb_state_incorrect(const fb_event_t event);
+fb_state_t fb_state_low_power(const fb_event_t event);
 fb_state_t fb_state_charging(const fb_event_t event);
 fb_state_t fb_state_charged(const fb_event_t event);
 

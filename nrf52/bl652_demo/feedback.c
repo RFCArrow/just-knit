@@ -21,6 +21,12 @@ void feedback_init(){
     feedback_handler = fb_state_init;
 }
 
+void fb_transition( fb_state_t (*new_state)(const fb_event_t event) ){
+    feedback_handler(FB_EVT_EXIT);
+    feedback_handler = new_state;
+    feedback_handler(FB_EVT_ENTRY);
+}
+
 //Initial State
 fb_state_t fb_state_init(const fb_event_t event){
     ret_code_t err_code = NRF_SUCCESS;
@@ -28,14 +34,14 @@ fb_state_t fb_state_init(const fb_event_t event){
         case FB_EVT_MOVEMENT_DETECTED:
             fb_transition(&fb_state_advertising);
         break;
-        case default:
+        default:
             //do nothing
         break;
     }
     return err_code;
 }
 
-fb_state_t fb_state_sleeping(const fb_event_t event){
+fb_state_t fb_state_sleep(const fb_event_t event){
     ret_code_t err_code = NRF_SUCCESS;
     switch(event){
         case FB_EVT_ENTRY:
@@ -72,6 +78,9 @@ fb_state_t fb_state_advertising(const fb_event_t event){
         case FB_EVT_ADVERTISING_TIMEOUT:
             fb_transition(&fb_state_sleep);
         break;
+        case FB_EVT_LOW_POWER:
+            fb_transition(&fb_state_low_power);
+        break;
         case FB_EVT_CHARGING_BEGIN:
             fb_transition(&fb_state_charging);
         break;
@@ -81,10 +90,239 @@ fb_state_t fb_state_advertising(const fb_event_t event){
     }
     return err_code;
 }
-uint32_t fb_state_connected(const fb_event_t event);
-uint32_t fb_state_knit(const fb_event_t event);
-uint32_t fb_state_purl(const fb_event_t event);
-uint32_t fb_state_correct(const fb_event_t event);
-uint32_t fb_state_incorrect(const fb_event_t event);
-uint32_t fb_state_charging(const fb_event_t event);
-uint32_t fb_state_charged(const fb_event_t event);
+
+fb_state_t fb_state_connected(const fb_event_t event){
+    ret_code_t err_code = NRF_SUCCESS;
+    switch(event){
+        case FB_EVT_ENTRY:
+            //set leds blue
+        break;
+        case FB_EVT_EXIT:
+            //turn leds off
+        break;
+        case FB_EVT_BLE_DISCONNECT:
+            fb_transition(&fb_state_advertising);
+        break;
+        case FB_EVT_MOVEMENT_TIMEOUT:
+            fb_transition(&fb_state_sleep);
+        break;
+        case FB_EVT_LOW_POWER:
+            fb_transition(&fb_state_low_power);
+        break;
+        case FB_EVT_CHARGING_BEGIN:
+            fb_transition(&fb_state_charging);
+        break;
+        case FB_EVT_REQUEST_KNIT:
+            fb_transition(&fb_state_knit);
+        break;
+        case FB_EVT_REQUEST_PURL:
+            fb_transition(&fb_state_purl);
+        break;
+        default:
+            //do nothing
+        break;
+    }
+    return err_code;
+}
+fb_state_t fb_state_knit(const fb_event_t event){
+
+    ret_code_t err_code = NRF_SUCCESS;
+    switch(event){
+        case FB_EVT_ENTRY:
+            //turn on blue led
+            //start knit animation
+        break;
+        case FB_EVT_EXIT:
+            //turn off blue led
+            //stop knit animation
+        break;
+        case FB_EVT_BLE_DISCONNECT:
+            fb_transition(&fb_state_advertising);
+        break;
+        case FB_EVT_MOVEMENT_TIMEOUT:
+            fb_transition(&fb_state_sleep);
+        break;
+        case FB_EVT_LOW_POWER:
+            fb_transition(&fb_state_low_power);
+        break;
+        case FB_EVT_CHARGING_BEGIN:
+            fb_transition(&fb_state_charging);
+        break;
+        case FB_EVT_KNIT_DETECTED:
+            fb_transition(&fb_state_correct);
+        break;
+        case FB_EVT_PURL_DETECTED:
+            fb_transition(&fb_state_incorrect);
+        break;
+        default:
+            //do nothing
+        break;
+    }
+    return err_code;
+}
+
+fb_state_t fb_state_purl(const fb_event_t event){
+
+    ret_code_t err_code = NRF_SUCCESS;
+    switch(event){
+        case FB_EVT_ENTRY:
+            //turn on blue led
+            //start purl animation
+        break;
+        case FB_EVT_EXIT:
+            //turn off blue led
+            //stop purl animation
+        break;
+        case FB_EVT_BLE_DISCONNECT:
+            fb_transition(&fb_state_advertising);
+        break;
+        case FB_EVT_MOVEMENT_TIMEOUT:
+            fb_transition(&fb_state_sleep);
+        break;
+        case FB_EVT_LOW_POWER:
+            fb_transition(&fb_state_low_power);
+        break;
+        case FB_EVT_CHARGING_BEGIN:
+            fb_transition(&fb_state_charging);
+        break;
+        case FB_EVT_KNIT_DETECTED:
+            fb_transition(&fb_state_incorrect);
+        break;
+        case FB_EVT_PURL_DETECTED:
+            fb_transition(&fb_state_correct);
+        break;
+        default:
+            //do nothing
+        break;
+    }
+    return err_code;
+}
+
+fb_state_t fb_state_correct(const fb_event_t event){
+
+    ret_code_t err_code = NRF_SUCCESS;
+    switch(event){
+        case FB_EVT_ENTRY:
+            //turn on green led
+            //turn on motor
+        break;
+        case FB_EVT_EXIT:
+            //turn off green led
+            //turn off motor
+        break;
+        case FB_EVT_BLE_DISCONNECT:
+            fb_transition(&fb_state_advertising);
+        break;
+        case FB_EVT_MOVEMENT_TIMEOUT:
+            fb_transition(&fb_state_sleep);
+        break;
+        case FB_EVT_LOW_POWER:
+            fb_transition(&fb_state_low_power);
+        break;
+        case FB_EVT_CHARGING_BEGIN:
+            fb_transition(&fb_state_charging);
+        break;
+        case FB_EVT_ANIMATION_END:
+            fb_transition(&fb_state_connected);
+        break;
+        default:
+            //do nothing
+        break;
+    }
+    return err_code;
+}
+fb_state_t fb_state_incorrect(const fb_event_t event){
+    ret_code_t err_code = NRF_SUCCESS;
+    switch(event){
+        case FB_EVT_ENTRY:
+            //turn on red led
+            //turn on motor
+        break;
+        case FB_EVT_EXIT:
+            //turn off red led
+            //turn off motor
+        break;
+        case FB_EVT_BLE_DISCONNECT:
+            fb_transition(&fb_state_advertising);
+        break;
+        case FB_EVT_MOVEMENT_TIMEOUT:
+            fb_transition(&fb_state_sleep);
+        break;
+        case FB_EVT_LOW_POWER:
+            fb_transition(&fb_state_low_power);
+        break;
+        case FB_EVT_CHARGING_BEGIN:
+            fb_transition(&fb_state_charging);
+        break;
+        case FB_EVT_ANIMATION_END:
+            fb_transition(&fb_state_connected);
+        break;
+        default:
+            //do nothing
+        break;
+    }
+    return err_code;
+}
+
+fb_state_t fb_state_low_power(const fb_event_t event){
+   ret_code_t err_code = NRF_SUCCESS;
+   switch(event){
+        case FB_EVT_ENTRY:
+            //turn yellow leds on
+        break;
+        case FB_EVT_EXIT:
+            //turn yellow leds off
+        break;
+        case FB_EVT_CHARGING_BEGIN:
+            fb_transition(&fb_state_charging);
+        break;
+        default:
+            //do nothing
+        break;
+    }
+    return err_code;
+}
+
+
+fb_state_t fb_state_charging(const fb_event_t event){
+    ret_code_t err_code = NRF_SUCCESS;
+    switch(event){
+        case FB_EVT_ENTRY:
+            //begin softblink
+        break;
+        case FB_EVT_EXIT:
+            //stop softblink
+        break;
+        case FB_EVT_CHARGER_DISCONNECT:
+            fb_transition(&fb_state_sleep);
+        break;
+        case FB_EVT_CHARGING_COMPLETE:
+            fb_transition(&fb_state_charged);
+        break;
+        default:
+            //do nothing
+        break;
+    }
+    return err_code;
+}
+fb_state_t fb_state_charged(const fb_event_t event){
+    ret_code_t err_code = NRF_SUCCESS;
+    switch(event){
+        case FB_EVT_ENTRY:
+            //begin softblink
+        break;
+        case FB_EVT_EXIT:
+            //stop softblink
+        break;
+        case FB_EVT_CHARGER_DISCONNECT:
+            fb_transition(&fb_state_sleep);
+        break;
+        case FB_EVT_CHARGING_BEGIN:
+            fb_transition(&fb_state_charging);
+        break;
+        default:
+            //do nothing
+        break;
+    }
+    return err_code;
+}
