@@ -140,63 +140,7 @@ void BNO055_delay_msek(u32 msek)
     nrf_delay_ms(msek);
 }
 
-/*
- * @brief Set mode of BNO055
- * param[in] power_mode 
- * param[in] operation_mode
- */
-void BNO055_set_mode(uint8_t power_mode, uint8_t operation_mode){
 
-    uint8_t observed_power_mode;
-    uint8_t observed_operation_mode;
-
-    NRF_LOG_INFO("Setting Power Mode to %x", power_mode);
-    
-    bno055_set_power_mode(power_mode);
-    bno055_set_operation_mode(operation_mode);
-    //nrf_delay_ms(500);
-    bno055_get_power_mode(&observed_power_mode);
-
-    if(observed_power_mode != power_mode){
-        NRF_LOG_ERROR("Could not set Power Mode to %x, Power Mode currently: %x",power_mode, observed_power_mode);
-    }
-    else NRF_LOG_INFO("Power Mode set to %x", power_mode);
-
-    NRF_LOG_INFO("Setting Operation Mode to %x", operation_mode);
-
-    bno055_get_operation_mode(&observed_operation_mode);
-    if(observed_operation_mode != operation_mode){
-        NRF_LOG_ERROR("Could not set Operation Mode to %x, Operation Mode currently: %x",operation_mode, observed_operation_mode);
-    }
-    else NRF_LOG_INFO("Operation Mode set to %x", operation_mode);
-
-    NRF_LOG_FLUSH();
-}
-
-
-/**
- * @brief Function for reading data from imu.
- */
-void BNO055_get_quaternions(uint8_t outBuffer[8])
-{
-    int16_t quaternion_dataw;
-    int16_t quaternion_datax;
-    int16_t quaternion_datay;
-    int16_t quaternion_dataz;
-    bno055_read_quaternion_w(&quaternion_dataw);
-    bno055_read_quaternion_x(&quaternion_datax);
-    bno055_read_quaternion_y(&quaternion_datay);
-    bno055_read_quaternion_z(&quaternion_dataz);
-    outBuffer[0] = quaternion_dataw & 0xff;
-    outBuffer[1] = ((uint16_t)quaternion_dataw & 0xff00 ) >> 8;
-    outBuffer[2] = quaternion_datax & 0xff;
-    outBuffer[3] = ((uint16_t)quaternion_datax & 0xff00 ) >> 8;
-    outBuffer[4] = quaternion_datay & 0xff;
-    outBuffer[5] = ((uint16_t)quaternion_datay & 0xff00 ) >> 8;
-    outBuffer[6] = quaternion_dataz & 0xff;
-    outBuffer[7] = ((uint16_t)quaternion_dataz & 0xff00 ) >> 8;
-    return;
-}
 
 
 

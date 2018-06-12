@@ -33,10 +33,6 @@ int8_t BNO055_I2C_bus_read(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt);
  *	\param cnt : The no of byte of data to be write
  */
 int8_t BNO055_I2C_bus_write(u8 dev_addr, u8 reg_addr, u8 *reg_data, u8 cnt);
-/*
- * \Brief: I2C init routine
-*/
-int8_t I2C_routine(void);
 
 /*	Brief : The delay routine
  *	\param : delay in ms
@@ -44,10 +40,6 @@ int8_t I2C_routine(void);
 void BNO055_delay_msek(u32 msek);
 
 void BNO055_api_init(struct bno055_t * p_bno055);
-
-void BNO055_set_mode(uint8_t power_mode, uint8_t operation_mode);
-
-void BNO055_get_quaternions(uint8_t quatBuffer[8]);
 
 #endif
 
