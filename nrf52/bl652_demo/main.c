@@ -70,7 +70,7 @@
 #include "app_timer.h"
 #include "fds.h"
 #include "peer_manager.h"
-#include "bsp_btn_ble.h"
+//#include "bsp_btn_ble.h"
 #include "sensorsim.h"
 #include "ble_conn_state.h"
 #include "nrf_ble_gatt.h"
@@ -84,10 +84,10 @@
 #include "nrf_log_default_backends.h"
 
 #include "ble_devs.h"
-#include "bno055.h"
-#include "bno055_api_plugin.h"
 #include "feedback.h"
+#include "interrupts.h"
 #include "fsm.h"
+#include "imu.h"
 
 #define DEBUG
 
@@ -102,7 +102,6 @@
 /* TWI instance. */
 const nrf_drv_twi_t m_twi = NRF_DRV_TWI_INSTANCE(TWI_INSTANCE_ID);
 
-struct bno055_t bno055;
 
 #define SAMPLE_INTERVAL                 APP_TIMER_TICKS(30)
 
@@ -278,9 +277,8 @@ static void sample_timeout_handler(void * p_context){
     ret_code_t err_code;
     uint8_t quatBuffer[8] = {0};
 
-    //Get value from BNO055
-    //NEED TO MOVE FUNCTION TO API PLUGIN OR SOMEWHERE ELSE APPROPRIATE
-    BNO055_get_quaternions(quatBuffer);
+    //Get value from IMU
+    imu_get_quaternions(quatBuffer);
 
     err_code = ble_devs_quat_value_update(&m_devs, quatBuffer);
     APP_ERROR_CHECK(err_code);
@@ -505,12 +503,12 @@ static void sleep_mode_enter(void)
 {
     ret_code_t err_code;
 
-    err_code = bsp_indication_set(BSP_INDICATE_IDLE);
-    APP_ERROR_CHECK(err_code);
+    //err_code = bsp_indication_set(BSP_INDICATE_IDLE);
+    //APP_ERROR_CHECK(err_code);
 
     // Prepare wakeup buttons.
-    err_code = bsp_btn_ble_sleep_mode_prepare();
-    APP_ERROR_CHECK(err_code);
+    //err_code = bsp_btn_ble_sleep_mode_prepare();
+    //APP_ERROR_CHECK(err_code);
 
     // Go to system-off mode (this function will not return; wakeup will cause a reset).
     err_code = sd_power_system_off();
@@ -526,14 +524,14 @@ static void sleep_mode_enter(void)
  */
 static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
 {
-    ret_code_t err_code;
+    //ret_code_t err_code;
 
     switch (ble_adv_evt)
     {
         case BLE_ADV_EVT_FAST:
             NRF_LOG_INFO("Fast advertising.");
-            err_code = bsp_indication_set(BSP_INDICATE_ADVERTISING);
-            APP_ERROR_CHECK(err_code);
+            //err_code = bsp_indication_set(BSP_INDICATE_ADVERTISING);
+            //APP_ERROR_CHECK(err_code);
             break;
 
         case BLE_ADV_EVT_IDLE:
@@ -564,7 +562,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 
         case BLE_GAP_EVT_CONNECTED:
             NRF_LOG_INFO("Connected.");
-            err_code = bsp_indication_set(BSP_INDICATE_CONNECTED);
+            //err_code = bsp_indication_set(BSP_INDICATE_CONNECTED);
             APP_ERROR_CHECK(err_code);
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
             err_code = nrf_ble_qwr_conn_handle_assign(&m_qwr, m_conn_handle);
@@ -683,6 +681,7 @@ static void delete_bonds(void)
  *
  * @param[in]   event   Event generated when button is pressed.
  */
+/*
 static void bsp_event_handler(bsp_event_t event)
 {
     ret_code_t err_code;
@@ -717,7 +716,7 @@ static void bsp_event_handler(bsp_event_t event)
             break;
     }
 }
-
+*/
 
 /**@brief Function for initializing the Advertising functionality.
  */
@@ -751,6 +750,7 @@ static void advertising_init(void)
  *
  * @param[out] p_erase_bonds  Will be true if the clear bonding button was pressed to wake the application up.
  */
+/*
 static void buttons_leds_init(bool * p_erase_bonds)
 {
     ret_code_t err_code;
@@ -764,7 +764,7 @@ static void buttons_leds_init(bool * p_erase_bonds)
 
     *p_erase_bonds = (startup_event == BSP_EVENT_CLEAR_BONDING_DATA);
 }
-
+*/
 
 /**@brief Function for initializing the nrf log module.
  */
@@ -825,7 +825,7 @@ void twi_init (void)
 {
     ret_code_t err_code;
 
-    const nrf_drv_twi_config_t twi_bno055_config = {
+    const nrf_drv_twi_config_t twi_config = {
        .scl                = TWI_SCL_PIN,
        .sda                = TWI_SDA_PIN,
        .frequency          = NRF_DRV_TWI_FREQ_100K,
@@ -834,7 +834,7 @@ void twi_init (void)
     };
 
     // Initialise TWI with null event handler (blocking mode)
-    err_code = nrf_drv_twi_init(&m_twi, &twi_bno055_config, NULL, NULL);
+    err_code = nrf_drv_twi_init(&m_twi, &twi_config, NULL, NULL);
     APP_ERROR_CHECK(err_code);
 
     nrf_drv_twi_enable(&m_twi);
@@ -845,13 +845,12 @@ void twi_init (void)
  */
 int main(void)
 {
-    bool erase_bonds;
-    uint8_t quatBuffer[8] = {0};
+    bool erase_bonds=false;
 
     // Initialize.
     log_init();
     timers_init();
-    buttons_leds_init(&erase_bonds);
+    //buttons_leds_init(&erase_bonds);
     power_management_init();
     ble_stack_init();
     gap_params_init();
@@ -861,14 +860,10 @@ int main(void)
     conn_params_init();
     peer_manager_init();
     feedback_init();
-    fsm_init();
     twi_init();
-    BNO055_api_init(&bno055);
-    //Ensure that 650ms passes before this call
-    nrf_delay_ms(650);
-    bno055_init(&bno055);
-    BNO055_set_mode(BNO055_POWER_MODE_NORMAL,BNO055_OPERATION_MODE_NDOF);
-    BNO055_get_quaternions(quatBuffer);
+    imu_init();
+    intr_init();
+    fsm_init();
 
 
 
