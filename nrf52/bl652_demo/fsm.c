@@ -1,9 +1,11 @@
 #include "fsm.h"
 #include "feedback.h"
+#include "interrupts.h"
 #include "sdk_common.h"
 
 void fsm_init(void){
-    fsm_handler = fsm_state_sleep;
+    fsm_handler = fsm_state_init;
+    fsm_handler(FSM_EVT_INIT);
 }
 
 void fsm_transition( fsm_state_t (*new_state)(const fsm_event_t event) ){
@@ -16,8 +18,8 @@ void fsm_transition( fsm_state_t (*new_state)(const fsm_event_t event) ){
 fsm_state_t fsm_state_init(const fsm_event_t event){
     ret_code_t err_code = NRF_SUCCESS;
     switch(event){
-        case FSM_EVT_MOVEMENT_DETECTED:
-            fsm_transition(&fsm_state_advertising);
+        case FSM_EVT_INIT:
+            fsm_transition(&fsm_state_sleep);
         break;
         default:
             //do nothing
@@ -30,12 +32,12 @@ fsm_state_t fsm_state_sleep(const fsm_event_t event){
     ret_code_t err_code = NRF_SUCCESS;
     switch(event){
         case FSM_EVT_ENTRY:
-            //turn off all lights
             fb_set_led(FB_OFF);
-            //set motion interrupt
+            intr_set_motion_interrupt();
+            //TODO: put to sleep
         break;
         case FSM_EVT_EXIT:
-            //set no-motion interrupt
+            intr_set_no_motion_interrupt();
         break;
         case FSM_EVT_MOVEMENT_DETECTED:
             fsm_transition(&fsm_state_advertising);
