@@ -8,9 +8,9 @@
 #define GREEN_PIN           NRF_GPIO_PIN_MAP(0,6)
 
 #define FB_OFF              0x0
-#define FB_RED              0x1<<8
-#define FB_GREEN            0x1<<6
-#define FB_BLUE             0x1<<7
+#define FB_RED              0x1<<6
+#define FB_GREEN            0x1<<7
+#define FB_BLUE             0x1<<8
 #define FB_YELLOW           FB_RED|FB_GREEN
 #define FB_MAGENTA          FB_RED|FB_BLUE
 #define FB_AQUA             FB_GREEN|FB_BLUE
