@@ -10,6 +10,7 @@
 *.map
 *.m~
 *.asv
+venv/
 slprj/
 *rtw/
 _build
