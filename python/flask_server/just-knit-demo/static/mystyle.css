@@ -1,6 +1,6 @@
 #stitch1{
     font-weight: 900;
-    font-size: 2vw;
+    font-size: 4vw;
     color: #62CFEA;
     margin: auto;
     text-align: center;
@@ -8,7 +8,7 @@
 
 #stitch2{
     font-weight: 900;
-    font-size: 4vw;
+    font-size: 6vw;
     color: #62CFEA;
     margin: auto;
     text-align: center;
@@ -40,7 +40,7 @@
 
 #stitch6{
     font-weight: 900;
-    font-size: 4vw;
+    font-size: 6vw;
     color: #D0D0D0;
     margin: auto;
     text-align: center;
@@ -48,15 +48,39 @@
 
 #stitch7{
     font-weight: 900;
-    font-size: 2vw;
+    font-size: 4vw;
     color: #D0D0D0;
     margin: auto;
     text-align: center;
 }
 
+#rowNumber{
+    font-weight: bold;
+    font-size 3vw;
+    color: #D0D0D0;
+    margin: auto;
+    text-align: right;
+}
+
+#remain{
+    font-weight: bold;
+    font-size 3vw;
+    color: #D0D0D0;
+    margin: auto;
+    text-align: left;
+}
+
+#complete{
+    font-weight: bold;
+    font-size 3vw;
+    color: #D0D0D0;
+    margin: auto;
+    text-align: right;
+}
+
 .navbar-text{
     font-weight: bold;
-    font-size: 2vw;
+    font-size: 4vw;
     color: #333333;
 }
 
@@ -69,5 +93,13 @@
     display: table-cell;
     vertical-align: middle;
     float: none;
+}
+
+.progress{
+    padding: 0px
+}
+
+.progress-bar{
+    background-color: #FF9900
 }
 

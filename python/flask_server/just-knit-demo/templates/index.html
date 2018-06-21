@@ -17,6 +17,14 @@
     
 
     <div class="container">
+
+        <div class="row">
+            <div class = "col-xs-8">
+            </div>
+            <div class = "col-xs-4" id="rowNumber">
+            </div>
+        </div>
+
         <div class="row display-table">
             <div class="col-xs-1 display-cell", id="stitch1" >
                 L
@@ -40,19 +48,29 @@
                 G
             </div>
         </div>
+
         <div class="row">
             <div class="col-xs-4">
             </div>
-            <div class="col-xs-4 progress">
+            <div class="col-xs-4 progress" id="progress_bar">
                 <div class="progress-bar" role="progressbar"
-                        aria-valuenow="20" aria-valuemin="0"
-                                           aria-valuemax="100">
-                    2/6
+                                         id="progress_bar_inner">
+                    3/6
                 </div> 
             </div>
             <div class="col-xs-4">
             </div>
         </div>
+
+        <div class="row">
+            <div class = "col-xs-4" id="remain">
+            </div>
+            <div class = "col-xs-4">
+            </div>
+            <div class = "col-xs-4" id="complete">
+            </div>
+        </div>
+
     </div>
     <p>Latency: <b><span id="ping-pong"></span>ms</b></p>
 
@@ -95,8 +113,28 @@
                 document.getElementById("stitch5").innerHTML = msg.stitch5;
                 document.getElementById("stitch6").innerHTML = msg.stitch6;
                 document.getElementById("stitch7").innerHTML = msg.stitch7;
+                document.getElementById("stitch1").onclick = function() {socket.emit('set_stitch', 3);};
+                document.getElementById("stitch2").onclick = function() {socket.emit('set_stitch', 2);};
+                document.getElementById("stitch3").onclick = function() {socket.emit('set_stitch', 1);};
+                document.getElementById("stitch4").onclick = function() {socket.emit('set_stitch', 0);};
+                document.getElementById("stitch5").onclick = function() {socket.emit('set_stitch', -1);};
+                document.getElementById("stitch6").onclick = function() {socket.emit('set_stitch', -2);};
+                document.getElementById("stitch7").onclick = function() {socket.emit('set_stitch', -3);};
+                document.getElementById("rowNumber").innerHTML = 'Row ' + msg.rowNumber.toString() ;
+                document.getElementById("remain").innerHTML = msg.remain.toString() + ' Remaining';
+                document.getElementById("complete").innerHTML = msg.complete.toString() + ' Complete';
 
-                //$('#log').append('<br>' + $('<div>').text('Received #' + msg.count + ': ' + msg.data).html());
+                if(msg.total == 1){
+                    document.getElementById("progress_bar").style.display = 'none';
+                }
+                else{
+                    var percent = 100*(msg.progress/msg.total);
+                    console.log("Displaying Progress Bar: ", percent);
+                    document.getElementsByClassName("progress-bar")[0].style.width = percent + "%";
+                    document.getElementsByClassName("progress-bar")[0].innerHTML = msg.progress.toString() + ' of ' + msg.total.toString();
+                    document.getElementById("progress_bar").style.display = 'block';
+                }
+
             });
     
             // Interval function that tests message latency by sending a "ping"

@@ -24,7 +24,7 @@ pattern = ['-', '-', '-', 'K1', 'P2', 'K1', 'P3', 'K2', 'P1', \
             '-', '-', '-']
 
 _pattern = Pattern(\
-'R:K1,P1,K1,P1,K1,P1,K1,P1,K6\
+'R:K2,P1,K1,P1,K1,P1,K1,P1,K6\
 R:P6,P1,K1,P1,K1,P1,K1,P1,K1\
 R:K1,P1,K1,P1,K1,P1,K4,P1,K3\
 R:P3,K1,P4,K1,P1,K1,P1,K1,P1')
@@ -83,6 +83,14 @@ def test_connect():
         #TODO Add status message for successful connect/fail
     json = _pattern.getInstructionBuffer()
     socketio.emit('my_response', json, namespace='/test')
+
+# Adjust stitch from web app 
+@socketio.on('set_stitch', namespace='/test')
+def set_stitch(instructionMoves):
+    _pattern.setStitch(instructionMoves)
+    json = _pattern.getInstructionBuffer()
+    socketio.emit('my_response', json, namespace='/test')
+
 
 
 # Ping-pong allows Javascript in the web page to calculate the

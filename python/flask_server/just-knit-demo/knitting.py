@@ -32,8 +32,9 @@ class Pattern:
 
     def _parseInstructions(self, instructionString):
         rows = instructionString.split('R:')
-        # Skip first 'row' because it is empty from the inital 'R:'
-        for row in rows[1:]:
+        # Delete first row because it is empty from the inital 'R:'
+        del rows[0]
+        for row in rows:
             instructions = row.split(',')
             instructionRow = []
             for instruction in instructions:
@@ -54,6 +55,25 @@ class Pattern:
                 self.isFinished=True
                 return
         self.currentStitch=self.pattern[self.rowNumber][self.stitchNumber]
+
+    def previousStitch(self):
+        self.stitchNumber -= 1
+        previousStitch = self.currentStitch
+        if previousStitch.progress==1:
+            self.instructionNumber -= 1
+        if self.stitchNumber < 0:
+            if self.rowNumber > 0:
+                self.rowNumber -= 1
+                self.stitchNumber = len(self.pattern[self.rowNumber])-1
+                self.instructionNumber = len(self.instructionArray[self.rowNumber])-1
+            else:
+                # throw error
+                self.stitchNumber = 0
+                self.instructionNumber = 0
+                return
+        print("Reversed to: ", self.instructionNumber)
+        self.currentStitch=self.pattern[self.rowNumber][self.stitchNumber]
+
 
 
     def getInstructionBuffer(self):
@@ -90,7 +110,7 @@ class Pattern:
 
         outbuffer['total']      = self.currentStitch.total
         outbuffer['progress']   = self.currentStitch.progress
-        outbuffer['row']        = self.rowNumber+1
+        outbuffer['rowNumber']        = self.rowNumber+1
         outbuffer['complete']   = self.stitchNumber
         outbuffer['remain']     = len(self.pattern[self.rowNumber])-self.stitchNumber
 
@@ -98,4 +118,32 @@ class Pattern:
 
     def is_finished(self):
         return self.isFinished
+
+    def setStitch(self, instructionMoves):
+
+        if instructionMoves == 0:
+                self.stitchNumber -= self.currentStitch.progress-1
+                self.currentStitch=self.pattern[self.rowNumber][self.stitchNumber]
+                return
+        instructionNumber = self.instructionNumber+instructionMoves
+        instructionNumber = instructionNumber % len(self.instructionArray[self.rowNumber])
+
+        print('Currently at: ',self.instructionNumber) 
+        print('Finding: ', instructionNumber)
+
+        if instructionMoves > 0:
+            while self.instructionNumber != instructionNumber:
+                self.nextStitch()
+            return
+
+        if instructionMoves < 0:
+            while self.instructionNumber != instructionNumber:
+                print("Reverse!")
+                self.previousStitch()
+            return
+
+
+
+
+        
 
