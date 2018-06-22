@@ -128,8 +128,6 @@ class Pattern:
         instructionNumber = self.instructionNumber+instructionMoves
         instructionNumber = instructionNumber % len(self.instructionArray[self.rowNumber])
 
-        print('Currently at: ',self.instructionNumber) 
-        print('Finding: ', instructionNumber)
 
         if instructionMoves > 0:
             while self.instructionNumber != instructionNumber:
@@ -138,8 +136,9 @@ class Pattern:
 
         if instructionMoves < 0:
             while self.instructionNumber != instructionNumber:
-                print("Reverse!")
                 self.previousStitch()
+                if self.instructionNumber == 0 and self.rowNumber == 0:
+                    break
             return
 
 
